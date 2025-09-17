@@ -3,4 +3,11 @@ form태그는 사용자의 입력을 처리하는 태. 로그인 버튼은 submi
 CSS버전은 지금 3
 스타일,인라인,링크
 스타일 속성 이름 프로퍼티 200개 정도 있다
-<p style/ 이게 인라인 
+head의 스타일보다 바디의 스타일이 우선도가 높다
+링크 태그로 CSS 불러오기가 가능 외부파일 불러올때 쓰는데 임폴트
+Cascading Style sheet줄여서 CSS
+우선순위
+external.css
+<style>
+style 속성
+순으로 강하다 속성이 가장 강하다
