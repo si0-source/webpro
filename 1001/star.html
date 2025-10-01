@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Javascript</title>
+</head>
+<body>
+    
+    <script>
+        for(let i=1; i<=4; i++){
+            for(let j=1; j<=i; j++){
+                document.write("*");
+            }
+            document.write("<br>");
+        }
+        document.write("<br>");
+        for(let i=1; i<=4; i++){
+            for(let j=4; j>i; j--){
+                document.write("&nbsp;&nbsp;");
+            }
+            for(let k=1; k<=(i); k++){
+                document.write("*");
+            }
+            document.write("<br>");
+        }
+        document.write("<br>");
+        for(let i=1; i<=4; i++){
+            for(let j=4; j>i; j--){
+                document.write("&nbsp;&nbsp;");
+            }
+            for(let k=1; k<=(2*i-1); k++){
+                document.write("*");
+            }
+            document.write("<br>");
+        }
+    document.write("<br>");
+         for(let i=1; i<=4; i++){
+            for(let j=4; j>i; j--){
+                document.write("&nbsp;&nbsp;");
+            }
+            for(let k=1; k<=(2*i-1); k++){
+                document.write("*");
+            }
+            document.write("<br>");
+            
+        }
+        for(let m=3; m>=1; m--){
+                for(let n=4; n>m; n--){
+                    document.write("&nbsp;&nbsp;");
+                }
+                for(let p=1; p<=(2*m-1); p++){
+                    document.write("*");
+                }
+                document.write("<br>");
+            }
+    </script>
+</body>
+</html>
