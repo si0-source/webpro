@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>별 문자 출력하기</title>
+</head>
+<body>
+    <h1>별 문자 출력하기</h1>
+    <hr>
+    <script>
+        let ret = prompt("정수를 입력하세요");
+        ret = Number(ret);
+        if (!Number.isInteger(ret) || ret <= 0) {
+            document.write("입력 오류입니다.");
+        } else {
+            for(let i=1; i<=ret; i++){
+                for(let j=1; j<=i; j++){
+                    document.write("*");
+                }
+                document.write("<br>");
+            }
+        }
+    </script>
+</body>
+</html>
