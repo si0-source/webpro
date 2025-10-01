@@ -8,3 +8,4 @@ html 이나 CSS에 script태그로 작성 url부분에 작성 가능 head나 bod
 스크립트 src쓰고 코드 작성하면 안됨
 href가능
 document.write() html에서의 바디에 글 쓰는 느낌
+vba는 자주 쓰이기도 한다
