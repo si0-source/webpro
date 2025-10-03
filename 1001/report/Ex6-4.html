@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>document.write()</title>
+    <script src="Ex6-1.js"></script>
+</head>
+<body>
+    <h3><b>월화수목금토일</b></h3>
+    <hr>
+    <script>
+        let day = prompt("월화수목금토일 중에서 입력하세요");
+        if(day=="화" || day=="수" )
+        {
+            document.write(day+"는 출근");
+        }
+        else if(day=="월" || day=="목" )
+        {
+            document.write(day+"은 출근");
+        }
+        else if(day=="토")
+        {
+            document.write(day+"는 휴일");
+        }
+        else if(day=="일"|| day=="금")
+        {
+            document.write(day+"은 휴일");
+        }
+
+    </script>
+</body>
+</html>
