@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Math를 활용한 구구단 연습</title>
+    <script>
+        function randomnum(){
+            return Math.floor(Math.random()*9)+1;
+        }
+    </script>
+</head>
+<body>
+    <h1>Math를 활용한 구구단 연습</h1>
+    <hr>
+    <script>
+        let a= randomnum()+"*"+randomnum();
+        let user=prompt(a);
+        if(user==null){
+            document.write("종료합니다")
+        }
+        else{
+            let result=eval(a)
+            if(result==user){
+                document.write(user+"정답")
+            }
+            else{
+                document.write(user+"오답")
+            }
+            document.write(a+"="+result)
+        }
+    </script>
+</body>
+</html>
