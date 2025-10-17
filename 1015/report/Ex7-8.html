@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        div{display: inline-block;width: 150px;padding: 10px;}
+    </style>
+    <title>Math.random()으로 랜덤한 색 만들기</title>
+</head>
+<body>
+    <h3>16개의 랜덤한 색 만들기</h3>
+    <hr>
+    <script>
+        for(let i=0;i<16;i++){
+            let a= Math.floor(Math.random()*256);
+            let b= Math.floor(Math.random()*256);
+            let c= Math.floor(Math.random()*256);
+            let color = "<div style='background-color:";
+            color=color+"rgb("+a+","+b+","+c+")";
+            color=color+"'>"+"rgb("+a+","+b+","+c+")"+"</div>";
+            document.write(color);
+        }
+    </script>
+    <!-- <div style='background-color:maroon'>maroon</div> -->
+</body>
+</html>
