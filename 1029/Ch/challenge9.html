@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>마우스 클릭 연습</title>
+<style>
+    table {
+        border-collapse: collapse;
+
+    }
+    td {
+        width: 50px;
+        height: 50px;
+        border: 1px solid black;
+    }
+    img {
+        width: 50px;
+        height: 50px;
+    }
+</style>
+<script>
+    function move(cells) {
+        cells.forEach(td => td.querySelector("img").src = "");
+        let random = Math.floor(Math.random() * cells.length);
+        let target = cells[random];
+        let img = target.querySelector("img");
+        img.src = "pngegg.png";
+        img.onclick = () => move(cells);
+    }
+</script>
+</head>
+<body>
+    <script>
+        document.write("<h3>마우스 클릭 연습</h3>");
+        document.write("<hr>");
+        document.write("<table>");
+        for (let i = 0; i < 10; i++) {
+            document.write("<tr>");
+            for (let j = 0; j < 10; j++) {
+                document.write("<td><img src=''></td>");
+            }
+            document.write("</tr>");
+        }
+        document.write("</table>");
+        const cells = document.querySelectorAll("td");
+        move(cells);
+    </script>
+</body>
+</html>
