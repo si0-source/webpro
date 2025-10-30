@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>갬블링 게임</title>
+    <style>
+        td {
+            font: italic 50px "consolas", sans-serif;
+            color: blue;
+            width: 50px;
+            height: 50px;
+            padding: 0px;
+            text-align: center;
+            background: linen;
+        }
+
+        div{
+            font: italic 20px "consolas", sans-serif;
+            color: magenta;
+        }
+    </style>
+    <script>
+        var sf1=0;
+        var sf2=0;
+        var sf3=0;
+        var sf=0;
+        let game = [0, 0, 0];
+
+        function gameclick(e) {
+            var result = document.getElementById("r");
+            
+            var n = Math.floor(Math.random() * 3);
+            var obj = e.target;
+            obj.innerHTML = n;
+            if (obj.id == "1"){
+                game[0] = n;
+                if (sf1==0){
+                    sf+=1;
+                    sf1=1;
+                }
+                if(sf==3){
+                    if (game[0] == game[1] && game[0] == game[2]) {
+                    result.innerHTML = "Success(click here to do again)";
+                } else {
+                    result.innerHTML = "fail(click here to do again)";
+                }
+                }
+            }
+            else if (obj.id == "2"){
+                game[1] = n;
+                if (sf2==0){
+                    sf+=1;
+                    sf2=1;
+                }
+                
+                if(sf==3){
+                    if (game[0] == game[1] && game[0] == game[2]) {
+                    result.innerHTML = "Success(click here to do again)";
+                } else {
+                    result.innerHTML = "fail(click here to do again)";
+                }
+                }
+            } else{
+                game[2] = n;
+                if (sf3==0){
+                    sf+=1;
+                    sf3=1;
+                }
+                
+                
+                if(sf==3){
+                    if (game[0] == game[1] && game[0] == game[2]) {
+                    result.innerHTML = "Success(click here to do again)";
+                } else {
+                    result.innerHTML = "fail(click here to do again)";
+                }
+                }
+                else{return;}
+            }
+        }
+
+        function reset() {
+            game = [0, 0, 0];
+
+            document.getElementById("1").innerHTML = 0;
+            document.getElementById("2").innerHTML = 0;
+            document.getElementById("3").innerHTML = 0;
+            document.getElementById("r").innerHTML = "";
+
+        }
+    </script>
+</head>
+<body>
+<h3>갬블링 게임</h3>
+<p>각 숫자를 클릭하면 0에서 2사이의 난수로 바뀝니다. 모두 같은 수가 나오면 승리합니다.</p>
+<hr>
+<table style="border: 1px solid violet; border-collapse: collapse;">
+    <tr>
+        <td id="1" onclick="gameclick(event)">0</td>
+        <td id="2" onclick="gameclick(event)">0</td>
+        <td id="3" onclick="gameclick(event)">0</td>
+    </tr>
+</table>
+<div id="r" onclick="reset()"></div>
+</body>
+</html>
