@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>onmouseover과 onmouseout</title>
+    <style>
+        div {
+            border: 1px solid greenyellow;
+            background-color: aliceblue;
+            position: absolute;
+            visibility: hidden;
+        }
+    </style>
+</head>
+<body>
+    <h3>아이템에 마우스를 올리면 설명 출력</h3>
+    <hr>
+    <p>여름 방학 때 하고 싶은 것들</p>
+    <ul>
+        <li>자전거로 대한민국 일주</li>
+        <li>책 100권 읽기</li>
+        <li>철인 3종 경기 준비</li>
+        <li>자바스크립트 정복</li>
+    </ul>
+    <div id="id"></div>
+
+    <script>
+        const id = document.getElementById("id");
+        const li = document.getElementsByTagName("li");
+        for (let i = 0; i < li.length; i++) {
+            li[i].addEventListener("mouseover", function (e) {
+                let memo;
+
+                switch (e.target.textContent) {
+                    case "자전거로 대한민국 일주":
+                        memo = "빨간자전거를 타고 서울, 대전, 대구, 부산 찍고, 목포, 인천을 거쳐 달린다";
+                        break;
+                    case "책 100권 읽기":
+                        memo = "하루 한 권씩 읽으면 100일 완성!";
+                        break;
+                    case "철인 3종 경기 준비":
+                        memo = "수영, 자전거, 달리기 모두 도전!";
+                        break;
+                    case "자바스크립트 정복":
+                        memo = "매일 코딩 연습으로 완전 마스터!";
+                        break;
+                }
+                id.innerHTML = memo;
+                id.style.left = e.pageX + "px";
+                id.style.top = e.pageY + "px";
+                id.style.visibility = "visible";
+            });
+
+            li[i].addEventListener("mouseout", function () {
+                id.style.visibility = "hidden";
+            });
+        }
+    </script>
+</body>
+</html>
