@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>transform:rotate()</title>
+    <style>
+        img{width: 300px;}
+    </style>
+    <script>
+        let n=2
+        function long(obj) {
+            obj.style.transform = "scale("+n+",1)"
+            n++
+        }
+    </script>
+</head>
+<body>
+<h3>클릭하면 2, 3, 4배로 옆으로 늘어납니다.</h3>
+<hr>
+<img src="sp.jpg" onclick="long(this)">
+</body>
+</html>

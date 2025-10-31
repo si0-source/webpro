@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>transform:rotat</title>
+    <script>
+        let n=0;
+        function spin(obj) {
+            n=n+90;
+            obj.style.transform = "rotate("+n+"deg)";
+        }
+    </script>
+</head>
+<body>
+<h3>클릭하면 90도 회전합니다.</h3>
+<hr>
+<img src="spade 2.png" width="100" height="100" onclick="spin(this)">
+</body>
+</html>
