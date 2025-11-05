@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>질문 테스트 - 당신의 이야기를 들려주세요 (미니멀 최종 - 보라색)</title>
+    <meta name="description" content="몇 가지 질문에 답하고 맞춤형 결과를 받아보세요" />
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <script src="https://unpkg.com/framer-motion@11/dist/framer-motion.js"></script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* 배경 색상 변수 추가 */
+        :root {
+            /* 기본 배경: 아주 연한 푸른 보라 */
+            --background: 240 20% 97%; 
+            /* 간편 모드 활성화 시 배경: 연한 보라 */
+            --background-simple: 240 40% 95%; 
+            --foreground: 260 70% 12%; /* 진한 보라색 텍스트 */
+            --card: 0 0% 100%;
+            --card-foreground: 260 70% 12%;
+            /* Primary: 연한 보라색 */
+            --primary: 260 60% 70%; 
+            --primary-foreground: 0 0% 100%;
+            --secondary: 240 15% 92%; /* 아주 연한 보라/회색 */
+            --secondary-foreground: 260 70% 12%;
+            --muted: 240 15% 94%;
+            --muted-foreground: 240 20% 45%;
+            /* Accent: Primary보다 약간 진한 보라색 */
+            --accent: 240 60% 65%; 
+            --accent-foreground: 0 0% 100%;
+            --border: 240 15% 90%;
+            --radius: 0.75rem;
+            --gradient-primary: hsl(var(--primary));
+            --shadow-card: 0 10px 40px -8px hsl(240 30% 60% / 0.15); /* 보라색 계열 그림자 */
+        }
+
+        /* 간편 답변 모드 활성화 시 배경색 동적 변경을 위한 클래스 */
+        .simple-mode-active {
+            background: hsl(var(--background-simple)) !important;
+            transition: background 0.5s ease-in-out;
+        }
+        
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: hsl(var(--background));
+            color: hsl(var(--foreground));
+            transition: background 0.5s ease-in-out;
+        }
+        
+        /* 토글 스위치 스타일 (레버 모양 강조) */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 56px; 
+            height: 32px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: hsl(var(--muted));
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 24px;
+            width: 24px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: hsl(var(--primary));
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'hsl(var(--background))',
+                        'background-simple': 'hsl(var(--background-simple))',
+                        foreground: 'hsl(var(--foreground))',
+                        card: 'hsl(var(--card))',
+                        'card-foreground': 'hsl(var(--card-foreground))',
+                        primary: 'hsl(var(--primary))',
+                        'primary-foreground': 'hsl(var(--primary-foreground))',
+                        secondary: 'hsl(var(--secondary))',
+                        'secondary-foreground': 'hsl(var(--secondary-foreground))',
+                        muted: 'hsl(var(--muted))',
+                        'muted-foreground': 'hsl(var(--muted-foreground))',
+                        accent: 'hsl(var(--accent))',
+                        'accent-foreground': 'hsl(var(--accent-foreground))',
+                        border: 'hsl(var(--border))',
+                        // 간편 모드 활성화 시 버튼 색상 변수 추가 (연한 보라)
+                        'simple-primary': 'hsl(240 40% 75%)', 
+                        'simple-foreground': 'hsl(260 70% 12%)',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { motion, AnimatePresence } = Motion;
+
+        // --- 일반 질문 목록 (기존 유지) ---
+        const questionPool = {
+            // 모든 연령 공통 질문 (MBTI, 성향 분석에 도움)
+            COMMON: [
+                { question: "아침에 일어났을 때 가장 먼저 하는 일은?", options: ["SNS 확인", "스트레칭", "물 마시기", "침대에서 5분 더"] },
+                { question: "주말 아침, 이상적인 시간은?", options: ["7시 이전", "8-9시", "10-11시", "정오 이후"] },
+                { question: "여행 계획을 세울 때 당신은?", options: ["세세한 일정표 작성", "큰 틀만 정함", "즉흥적으로", "다른 사람 따라감"] },
+                { question: "친구가 고민 상담을 한다면?", options: ["해결책 제시", "공감하며 들어줌", "경험담 공유", "같이 고민"] },
+                { question: "새로운 취미를 시작한다면?", options: ["운동", "예술/공예", "요리", "독서"] },
+                { question: "스트레스 해소 방법은?", options: ["운동", "음악 감상", "잠", "쇼핑"] },
+                { question: "선호하는 영화 장르는?", options: ["액션", "로맨스", "스릴러", "코미디"] },
+                { question: "카페에서 주로 주문하는 것은?", options: ["아메리카노", "라떼", "차", "디저트 중심"] },
+                { question: "회의 중 당신의 역할은?", options: ["리더", "아이디어 제공", "경청", "기록"] },
+                { question: "갑자기 생긴 자유 시간, 무엇을 할까?", options: ["계획했던 일", "휴식", "친구 만남", "새로운 것 시도"] },
+                { question: "선물을 고를 때 중요한 것은?", options: ["실용성", "디자인", "가격", "의미"] },
+                { question: "좋아하는 계절은?", options: ["봄", "여름", "가을", "겨울"] },
+                { question: "SNS 사용 패턴은?", options: ["자주 올림", "보기만 함", "가끔 올림", "거의 안함"] },
+                { question: "음악을 들을 때 선호하는 방식은?", options: ["플레이리스트", "랜덤", "앨범 전체", "라디오"] },
+                { question: "책을 읽을 때 선호하는 장르는?", options: ["소설", "자기계발", "에세이", "전문서적"] },
+                { question: "새로운 사람을 만날 때?", options: ["적극적으로 다가감", "상대 반응 보고", "소극적", "피함"] },
+                { question: "선호하는 운동 방식은?", options: ["혼자 조깅", "팀 스포츠", "헬스", "운동 안함"] },
+                { question: "패션 스타일은?", options: ["미니멀", "트렌디", "편안함 우선", "개성 있게"] },
+                { question: "논쟁 상황에서 당신은?", options: ["논리적 설득", "감정 호소", "회피", "중재"] },
+                { question: "실패했을 때 반응은?", options: ["원인 분석", "감정 토로", "빨리 잊음", "다시 도전"] },
+                { question: "좋아하는 색상은?", options: ["파랑", "빨강", "초록", "노랑"] },
+                { question: "아침 식사 스타일은?", options: ["든든하게", "간단하게", "커피만", "안먹음"] },
+                { question: "전화와 문자 중 선호는?", options: ["전화", "문자", "상황따라", "둘 다 싫음"] },
+                { question: "집 인테리어 스타일은?", options: ["모던", "빈티지", "미니멀", "아늑함"] },
+                { question: "파티에서 당신은?", options: ["분위기 주도", "친한 사람과", "조용히 관찰", "일찍 퇴장"] },
+                { question: "날씨가 좋은 주말엔?", options: ["야외 활동", "집에서 휴식", "카페", "문화생활"] },
+                { question: "좋아하는 간식은?", options: ["과자", "과일", "견과류", "안먹음"] },
+                { question: "정보 습득 방법은?", options: ["책", "영상", "팟캐스트", "경험"] },
+                { question: "잠들기 전 루틴은?", options: ["독서", "영상 시청", "명상", "스마트폰"] },
+                { question: "에너지 충전 방법은?", options: ["사람들과", "혼자", "활동적으로", "휴식"] }
+            ],
+            // 10대 (학교/진로)
+            SCHOOL: [
+                { question: "선호하는 학습 방식은?", options: ["이론 먼저", "실습 중심", "토론", "독학"] },
+                { question: "시험 전날 당신은?", options: ["밤샘 공부", "충분히 잠", "벼락치기", "이미 끝냄"] },
+                { question: "성적을 받았을 때 반응은?", options: ["만족", "더 열심히", "친구와 비교", "신경 안 씀"] },
+                { question: "학교에서 가장 집중하는 활동은?", options: ["공부", "동아리", "친구 관계", "취미"] },
+                { question: "장래 희망을 생각할 때 중요한 것은?", options: ["수입", "적성", "사회적 가치", "안정성"] },
+                { question: "방학 때 가장 하고 싶은 활동은?", options: ["여행", "집에서 휴식", "알바/경력 쌓기", "새로운 공부"] },
+                { question: "친구에게 거짓말이 발각됐을 때 반응은?", options: ["바로 사과", "변명 시도", "침묵", "농담으로 넘김"] },
+                { question: "가장 재미있는 수업 유형은?", options: ["실험/실습", "토론/발표", "선생님 강의", "자습 시간"] },
+                { question: "용돈 기입장을 쓰는 편인가요?", options: ["매우 꼼꼼히", "대충만", "필요할 때만", "전혀 안 씀"] },
+                { question: "새로운 학용품을 보면?", options: ["구매한다", "구경만 한다", "필요할 때만 산다", "선물받는다"] }
+            ],
+            // 20대 (진로/독립/여가)
+            COLLEGE_EARLY_CAREER: [
+                { question: "협업 시 당신이 가장 중요시하는 역할은?", options: ["목표 설정", "세부 실행", "팀원 조율", "결과 검토"] },
+                { question: "현재 목표를 이루는 데 가장 필요한 것은?", options: ["자금", "시간", "경험", "멘토"] },
+                { question: "경제적 독립에 대한 당신의 생각은?", options: ["매우 중요", "점진적으로", "아직은 아님", "크게 신경 안 씀"] },
+                { question: "주요 역량을 키우는 방식은?", options: ["자격증/학위", "실무 경험", "스터디/강의", "독학/실패 경험"] },
+                { question: "일(활동)의 만족도를 결정하는 핵심 요소는?", options: ["결과물", "과정의 즐거움", "주변의 인정", "금전적 보상"] },
+                { question: "여가 시간을 활용하는 가장 큰 기준은?", options: ["효율적인 휴식", "새로운 경험", "취미 발전", "친구와의 시간"] },
+                { question: "인맥을 형성할 때 중요하게 생각하는 것은?", options: ["다양한 분야", "깊은 관계", "실용적인 도움", "즐거움"] },
+                { question: "돈을 쓸 때 가장 아깝지 않은 분야는?", options: ["자기계발", "여행", "맛집", "패션/아이템"] },
+                { question: "미래를 대비하는 방식은?", options: ["구체적 목표 설정", "현재에 충실", "유연성 확보", "운명에 맡김"] },
+                { question: "선호하는 주거 형태는?", options: ["원룸/오피스텔", "쉐어하우스", "부모님 댁", "내 집 마련 준비"] }
+            ],
+            // 30대 이상 (직장/재테크/라이프스타일)
+            CAREER_LIFESTYLE: [
+                { question: "일을 처리하는 방식은?", options: ["마감 전 미리", "마감 직전", "조금씩 분산", "몰아서"] },
+                { question: "돈 관리 방식은?", options: ["꼼꼼히 기록", "대략 파악", "투자 우선", "저축 우선"] },
+                { question: "중요한 결정을 할 때?", options: ["분석 후 결정", "직감", "조언 구함", "미룸"] },
+                { question: "선호하는 여행 스타일은?", options: ["계획형 관광", "자유여행", "휴양", "모험"] },
+                { question: "집에서 보내는 시간?", options: ["생산적 활동", "휴식/수면", "취미", "청소/정리"] },
+                { question: "갈등 해결 방식은?", options: ["대화", "시간이 해결", "제3자 개입", "회피"] },
+                { question: "재테크에서 가장 중요하게 생각하는 것은?", options: ["수익률", "안정성", "정보의 접근성", "타이밍"] },
+                { question: "가장 선호하는 주거 형태는?", options: ["아파트", "단독주택", "오피스텔", "상관없음"] },
+                { question: "은퇴 후 이상적인 삶은?", options: ["여행", "봉사", "취미 활동", "조용한 휴식"] },
+                { question: "현재 가장 관심을 두는 자기계발 분야는?", options: ["직무 관련", "외국어", "재테크/투자", "건강"] }
+            ]
+        };
+        
+        // --- 간편 답변 질문 세트 (2가지 선택지) ---
+        const simpleQuestionPool = [
+            { question: "새로운 아이디어를 얻을 때:", options: ["직접 해보며 깨닫는다.", "깊이 생각하고 논리적으로 정리한다."] },
+            { question: "가장 편안한 상황은:", options: ["많은 사람들과 에너지를 공유할 때.", "혼자 조용히 집중할 수 있을 때."] },
+            { question: "결정을 내릴 때 주로:", options: ["상황의 이점과 논리적 결과를 고려한다.", "나와 타인의 감정과 가치를 중요시한다."] },
+            { question: "당신의 삶의 태도는:", options: ["현재 순간을 즐기고 유연하게 대처한다.", "미래를 예측하고 계획에 따라 움직인다."] },
+            { question: "일을 시작할 때:", options: ["큰 그림부터 구상하고 세부 사항은 나중에.", "세부 계획을 먼저 세우고 완벽하게 시작한다."] },
+            { question: "갈등 상황에서 당신은:", options: ["직접 맞서서 해결하려 한다.", "갈등을 피하고 평화를 유지하려 한다."] },
+            { question: "새로운 기술을 배울 때:", options: ["친구/동료와 함께 실험해 본다.", "관련 서적이나 매뉴얼을 탐독한다."] },
+            { question: "휴식을 취하는 방법은:", options: ["활동적인 취미나 스포츠를 즐긴다.", "아무것도 하지 않고 재충전한다."] },
+            { question: "문제를 처리할 때:", options: ["경험에 비추어 직관적으로 판단한다.", "데이터와 정보를 기반으로 분석한다."] },
+            { question: "시간 관리는:", options: ["엄격한 시간표를 따르는 것에 익숙하다.", "자유롭게 일정을 조정하는 것을 선호한다."] },
+            { question: "다른 사람에게 도움을 요청하는 것:", options: ["필요하다면 망설이지 않고 요청한다.", "가능한 한 혼자 해결하는 것이 편하다."] },
+            { question: "여행지 선택 시:", options: ["새로운 곳에서 도전과 모험을 경험한다.", "친숙하고 편안한 곳에서 안정감을 찾는다."] },
+            { question: "인생의 중요한 목표는:", options: ["개인의 성취와 성공을 이루는 것.", "주변 사람들과의 행복과 관계를 유지하는 것."] },
+            { question: "가장 중요한 자산은:", options: ["물질적인 안정과 풍요로움.", "시간과 선택의 자유."] },
+            { question: "비판을 받아들일 때:", options: ["비판의 내용과 논리를 중요하게 생각한다.", "비판하는 사람의 의도와 감정을 먼저 살핀다."] },
+        ];
+
+
+        function getQuestionsByAge(age, count) {
+            let coreQuestions = [];
+
+            if (age < 20) {
+                // 10대: 학교 중심
+                coreQuestions = questionPool.SCHOOL;
+            } else if (age < 30) {
+                // 20대: 진로/독립 중심
+                coreQuestions = questionPool.COLLEGE_EARLY_CAREER;
+            } else {
+                // 30대 이상: 직장/재테크 중심
+                coreQuestions = questionPool.CAREER_LIFESTYLE;
+            }
+
+            const getShuffled = (arr, num) => [...arr].sort(() => Math.random() - 0.5).slice(0, num);
+            
+            const commonCount = Math.floor(count / 2);
+            const coreCount = count - commonCount;
+
+            const selectedCommon = getShuffled(questionPool.COMMON, commonCount);
+            const selectedCore = getShuffled(coreQuestions, coreCount);
+
+            return [...selectedCommon, ...selectedCore].sort(() => Math.random() - 0.5);
+        }
+
+        function getSimpleQuestions(count) {
+            // 간편 모드는 2지선다로 구성되어 있으므로, 질문 개수는 simpleQuestionPool에서 가져옵니다.
+            const getShuffled = (arr, num) => [...arr].sort(() => Math.random() - 0.5).slice(0, num);
+            return getShuffled(simpleQuestionPool, count);
+        }
+        
+        // AgeInputScreen (색상만 변경)
+        function AgeInputScreen({ onAgeSubmit }) {
+            
+            const ageOptions = [
+                { label: "10대 (10~19세)", value: 15, key: 10 },
+                { label: "20대 (20~29세)", value: 25, key: 20 },
+                { label: "30대 (30~39세)", value: 35, key: 30 },
+                { label: "40대 이상", value: 45, key: 40 }, 
+            ];
+
+            const [selectedAge, setSelectedAge] = useState(null);
+
+            const handleSubmit = () => {
+                if (selectedAge) {
+                    onAgeSubmit(selectedAge);
+                }
+            };
+            
+            return (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="min-h-screen flex items-center justify-center p-8"
+                    style={{ background: 'hsl(var(--background))' }}
+                >
+                    <div className="max-w-md w-full text-center text-foreground p-12 bg-card rounded-2xl shadow-2xl border border-border/50">
+                        <motion.h1
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="text-4xl font-extrabold mb-8 text-primary" 
+                        >
+                            가까운 나이를 선택해주세요
+                        </motion.h1>
+                        
+                        <div className="space-y-4 mb-8">
+                            {ageOptions.map((option, index) => (
+                                <motion.button
+                                    key={option.key}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: 0.4 + index * 0.1 }}
+                                    onClick={() => setSelectedAge(option.value)}
+                                    className={`w-full py-4 px-6 text-lg border rounded-xl transition-all ${
+                                        selectedAge === option.value
+                                            ? 'bg-primary text-primary-foreground border-primary shadow-md'
+                                            : 'bg-muted/30 text-foreground border-border hover:bg-secondary/50'
+                                    }`}
+                                >
+                                    {option.label}
+                                </motion.button>
+                            ))}
+                        </div>
+
+                        <motion.button
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.9 }}
+                            onClick={handleSubmit}
+                            disabled={!selectedAge}
+                            className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-semibold hover:opacity-90 transition disabled:bg-muted disabled:text-muted-foreground"
+                        >
+                            다음
+                        </motion.button>
+                    </div>
+                </motion.div>
+            );
+        }
+
+        // --- 수정된 컴포넌트: Welcome Screen Component (토글 디자인 및 색상 변경 로직 적용) ---
+        function WelcomeScreen({ onStart, age, isSimpleMode, toggleSimpleMode }) {
+            const questionOptions = [
+                { count: 5, time: "2분" },
+                { count: 7, time: "3분" },
+                { count: 10, time: "5분" }
+            ];
+
+            const handleStart = (count) => {
+                onStart(count, age, isSimpleMode);
+            };
+
+            const buttonClass = (isActive) => `
+                bg-secondary/10 border border-border rounded-xl p-8 transition-all text-center group flex flex-col items-center h-full
+                ${isActive ? 'hover:bg-secondary/30' : 'hover:bg-secondary/30'}
+                ${isSimpleMode 
+                    ? 'bg-simple-primary/50 border-simple-primary/80 hover:bg-simple-primary/70' 
+                    : 'bg-secondary/10 border-border hover:bg-secondary/30'}
+            `;
+            
+            const titleClass = (isActive) => `
+                text-4xl font-extrabold mb-1 group-hover:text-primary transition
+                ${isSimpleMode ? 'text-simple-foreground' : 'text-primary'}
+            `;
+
+
+            return (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`min-h-screen flex items-center justify-center p-8 ${isSimpleMode ? 'simple-mode-active' : ''}`}
+                    style={{ background: isSimpleMode ? 'hsl(var(--background-simple))' : 'hsl(var(--background))' }}
+                >
+                    <div className="max-w-4xl w-full text-center text-foreground p-12 bg-card rounded-2xl shadow-2xl border border-border/50">
+                        <motion.h1
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="text-5xl font-extrabold mb-8" 
+                            style={{ color: 'hsl(var(--foreground))' }}
+                        >
+                            테스트 길이 선택
+                        </motion.h1>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                            {questionOptions.map((option, index) => (
+                                <motion.button
+                                    key={option.count}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: 0.6 + index * 0.1 }}
+                                    onClick={() => handleStart(option.count)} 
+                                    className={buttonClass()}
+                                >
+                                    <div className="flex-grow">
+                                        <div className={titleClass()}>
+                                            {option.count}
+                                        </div>
+                                        <div className="text-base font-semibold text-foreground mb-3">
+                                            개 질문
+                                        </div>
+                                    </div>
+                                    <div className="text-muted-foreground text-sm font-medium px-3 py-1 bg-muted rounded-full w-fit">
+                                        {option.time} 소요
+                                    </div>
+                                </motion.button>
+                            ))}
+                        </div>
+                        
+                        {/* --- 토글 버튼 영역 (설명 제거, 레버 강조) --- */}
+                        <div className="flex items-center justify-center space-x-4 border-t border-border pt-6 mt-6">
+                            <span className="text-lg font-semibold text-foreground transition-all">간편 답변 모드</span>
+                            <label className="toggle-switch">
+                                <input 
+                                    type="checkbox" 
+                                    checked={isSimpleMode} 
+                                    onChange={toggleSimpleMode} 
+                                />
+                                <span className="toggle-slider"></span>
+                            </label>
+                            {/* <span className="text-sm text-muted-foreground"></span> */}
+                        </div>
+                        {/* ------------------ */}
+
+                    </div>
+                </motion.div>
+            );
+        }
+
+        // --- 수정된 컴포넌트: Question Card Component (간편 모드 UI 전면 수정 및 여백 채우기) ---
+        function QuestionCard({ question, options, onAnswer, currentQuestion, totalQuestions, isSimpleMode }) {
+            const progress = ((currentQuestion + 1) / totalQuestions) * 100;
+            const cardStyles = "p-8 rounded-xl bg-card border border-border/50 backdrop-blur-sm";
+
+            // 간편 답변 모드 렌더링 (좌우 가득 채우는 버튼)
+            if (isSimpleMode) {
+                // 간편 모드에서는 전체 화면에 가깝게 버튼 배치
+                return (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        // min-h-screen을 flex로 사용하여 하단 여백 채우기에 도움
+                        className="min-h-screen w-full flex flex-col items-center justify-between p-4 sm:p-8"
+                    >
+                        {/* 진행바 */}
+                        <div className="w-full max-w-4xl pt-4 mb-4">
+                            <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                                <span>질문 {currentQuestion + 1}</span>
+                                <span>{totalQuestions}개 중</span>
+                            </div>
+                            <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${progress}%` }}
+                                    transition={{ duration: 0.5 }}
+                                    className="h-full"
+                                    style={{ backgroundColor: 'hsl(var(--primary))' }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* 질문 영역 */}
+                        <div className="max-w-4xl w-full text-center p-8 bg-card rounded-xl shadow-xl mb-4">
+                            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">
+                                {question}
+                            </h2>
+                        </div>
+                        
+                        {/* 답변 버튼 (좌우 가득 채움) */}
+                        {/* flex-grow와 items-stretch로 남은 공간을 버튼들이 채우도록 함 */}
+                        <div className="w-full max-w-4xl flex flex-col sm:flex-row gap-4 flex-grow justify-center items-stretch">
+                            {options.map((option, index) => (
+                                <motion.button
+                                    key={index}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: index * 0.1, type: "spring", stiffness: 100 }}
+                                    onClick={() => onAnswer(option)}
+                                    className={`
+                                        flex-1 min-h-[150px] flex flex-col items-center justify-center 
+                                        text-center p-6 rounded-2xl shadow-lg transition-all duration-300
+                                        hover:shadow-xl hover:scale-[1.01]
+                                        ${index === 0 
+                                            ? 'bg-primary/90 text-primary-foreground' 
+                                            : 'bg-accent/80 text-primary-foreground'}
+                                    `}
+                                >
+                                    <div className="text-6xl font-black mb-3 opacity-90">
+                                        {String.fromCharCode(65 + index)}
+                                    </div>
+                                    <span className="text-lg font-semibold">{option}</span>
+                                </motion.button>
+                            ))}
+                        </div>
+                        
+                        <div className="h-4"></div> {/* 하단 여백 유지 */}
+
+                    </motion.div>
+                );
+            }
+
+            // 일반 객관식 모드 렌더링 (색상만 변경)
+            return (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                    className="w-full max-w-2xl mx-auto"
+                >
+                    <div className="mb-8">
+                        <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                            <span>질문 {currentQuestion + 1}</span>
+                            <span>{totalQuestions}개 중</span>
+                        </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progress}%` }}
+                                transition={{ duration: 0.5 }}
+                                className="h-full"
+                                style={{ backgroundColor: 'hsl(var(--primary))' }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className={cardStyles} style={{ boxShadow: 'var(--shadow-card)' }}>
+                        <h2 className="text-3xl font-bold mb-8 text-foreground">{question}</h2>
+                        <div className="space-y-3">
+                            {options.map((option, index) => (
+                                <motion.button
+                                    key={index}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    onClick={() => onAnswer(option)}
+                                    className="w-full text-left h-auto py-4 px-6 text-lg border border-border rounded-lg hover:bg-accent/10 hover:border-accent transition-all"
+                                >
+                                    <span className="flex items-center gap-3">
+                                        <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold">
+                                            {String.fromCharCode(65 + index)}
+                                        </span>
+                                        <span>{option}</span>
+                                    </span>
+                                </motion.button>
+                            ))}
+                        </div>
+                    </div>
+                </motion.div>
+            );
+        }
+
+        // Result Screen Component (색상만 변경)
+        function ResultScreen({ answers, answerTimes, onRestart }) {
+            const analyzeAnswerPattern = () => {
+                const firstAnswer = answers[0];
+                const allSame = answers.every(a => a === firstAnswer);
+                const avgTime = answerTimes.reduce((a, b) => a + b, 0) / answerTimes.length;
+                return { allSame, tooFast: avgTime < 1000 };
+            };
+
+            const getComprehensiveResult = () => {
+                const avgTime = answerTimes.reduce((a, b) => a + b, 0) / answerTimes.length;
+                const speedScore = Math.max(0, 5000 - avgTime) / 50;
+                
+                const answerVariety = new Set(answers).size;
+                const varietyScore = (answerVariety / answers.length) * 1000;
+                
+                const totalScore = Math.round(speedScore + varietyScore * 0.5); 
+                
+                let resultType = "";
+                let emoji = "";
+                let description = "";
+                let resultDetail = "";
+                
+                if (totalScore > 1500 && avgTime < 3000) {
+                    resultType = "완벽주의 달성자";
+                    emoji = "🏆";
+                    description = "빠르고 정확한 판단력의 소유자";
+                    resultDetail = "당신은 신속한 의사결정과 높은 집중력을 동시에 보여주는 완벽주의자입니다. 주어진 과제를 빠르게 파악하고 정확하게 수행하는 능력이 뛰어납니다. 이러한 성향은 압박 상황에서도 냉정함을 유지하고 최선의 결과를 도출하는 강점으로 작용합니다.";
+                } else if (totalScore > 1000) {
+                    resultType = "밸런스 마스터";
+                    emoji = "⚖️";
+                    description = "속도와 신중함의 완벽한 조화";
+                    resultDetail = "당신은 빠른 판단과 신중한 사고 사이에서 이상적인 균형을 유지합니다. 필요할 때는 빠르게 결정하지만, 중요한 순간에는 충분히 고민하는 지혜를 가지고 있습니다. 다양한 선택을 고려하면서도 우유부단하지 않은 당신의 태도는 팀워크와 리더십 상황에서 빛을 발합니다.";
+                } else if (avgTime > 5000) {
+                    resultType = "신중한 사색가";
+                    emoji = "🤔";
+                    description = "깊이 있는 고민을 통한 현명한 선택";
+                    resultDetail = "당신은 모든 질문에 충분한 시간을 들여 깊이 생각하는 사색가입니다. 성급한 판단보다는 신중한 고려를 중요시하며, 각 선택의 의미를 되새기며 답합니다. 이러한 성향은 장기적 관점에서 현명한 결정을 내리는 데 큰 도움이 되며, 복잡한 문제 해결에서 탁월한 능력을 발휘합니다.";
+                } else if (answerVariety > answers.length * 0.7) {
+                    resultType = "자유로운 탐험가";
+                    emoji = "🌟";
+                    description = "다양성을 추구하는 모험가";
+                    resultDetail = "당신은 편견 없이 모든 가능성을 탐색하는 자유로운 영혼입니다. 다양한 선택지를 골고루 고려하며, 특정 패턴에 갇히지 않는 유연한 사고방식을 가지고 있습니다. 이러한 개방적 태도는 창의적 문제 해결과 새로운 아이디어 발굴에 큰 강점이 되며, 변화와 혁신을 두려워하지 않는 당신의 특성을 잘 보여줍니다.";
+                } else {
+                    resultType = "마이웨이 도전자";
+                    emoji = "💪";
+                    description = "자신만의 길을 걷는 독립적인 성향";
+                    resultDetail = "당신은 남들의 시선이나 일반적인 기준보다 자신만의 방식을 중요시합니다. 때로는 예상 밖의 선택을 하고, 자신만의 리듬으로 문제에 접근합니다. 이러한 독립적 성향은 기존의 틀을 벗어난 혁신적인 해결책을 찾아내는 원동력이 되며, 자신만의 확고한 가치관을 바탕으로 일관된 삶의 태도를 유지하게 합니다.";
+                }
+                
+                return { resultType, emoji, description, resultDetail, totalScore, avgTime };
+            };
+
+            const pattern = analyzeAnswerPattern();
+            const result = getComprehensiveResult();
+
+            if (pattern.allSame || pattern.tooFast) {
+                return (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="min-h-screen flex items-center justify-center p-4"
+                    >
+                        <div className="max-w-xl w-full text-center text-foreground p-12 bg-card rounded-2xl shadow-2xl border border-border/50">
+                            <h2 className="text-4xl font-extrabold mb-4 text-red-500">⚠ 답변 분석 불가능 ⚠</h2>
+                            <p className="text-lg text-muted-foreground mb-8">
+                                {pattern.allSame 
+                                    ? "모든 질문에 동일하게 답변하셨거나, 너무 비슷한 패턴으로 답하셨습니다." 
+                                    : "너무 빠르게 답변하여 정확한 분석이 어렵습니다."}
+                                <br />
+                                <strong className="text-foreground">다시 한번 진심을 담아 응답해주시겠어요?</strong>
+                            </p>
+                            <button
+                                onClick={onRestart}
+                                className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-semibold hover:opacity-90 transition"
+                            >
+                                다시 시작하기
+                            </button>
+                        </div>
+                    </motion.div>
+                );
+            }
+
+            return (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="min-h-screen flex items-center justify-center p-4"
+                >
+                    <div className="max-w-xl w-full text-center text-foreground p-12 bg-card rounded-2xl shadow-2xl border border-border/50">
+                        <motion.div
+                            initial={{ scale: 0.5, rotate: 0 }}
+                            animate={{ scale: 1, rotate: 360 }}
+                            transition={{ type: "spring", stiffness: 200, damping: 10, delay: 0.5 }}
+                            className="text-8xl mb-4"
+                        >
+                            {result.emoji}
+                        </motion.div>
+                        <h1 className="text-5xl font-extrabold mb-2 text-primary">{result.resultType}</h1>
+                        <p className="text-xl font-medium text-foreground mb-8">{result.description}</p>
+                        
+                        <div className="text-left bg-muted/50 p-6 rounded-xl mb-8 border border-border">
+                            <h3 className="text-2xl font-bold mb-3 text-foreground">당신의 성향 분석:</h3>
+                            <p className="text-muted-foreground leading-relaxed">{result.resultDetail}</p>
+                        </div>
+
+                        <div className="flex justify-around text-center mb-8">
+                            <div>
+                                <p className="text-4xl font-bold text-accent">{answers.length}개</p>
+                                <p className="text-sm text-muted-foreground">총 답변 수</p>
+                            </div>
+                            <div>
+                                <p className="text-4xl font-bold text-accent">{(result.avgTime / 1000).toFixed(1)}초</p>
+                                <p className="text-sm text-muted-foreground">평균 답변 시간</p>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={onRestart}
+                            className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-semibold hover:opacity-90 transition"
+                        >
+                            다시 시작하기
+                        </button>
+                    </div>
+                </motion.div>
+            );
+        }
+
+        // --- 메인 App 컴포넌트 (기존 유지) ---
+        function App() {
+            const [step, setStep] = useState('ageInput'); // 'ageInput', 'welcome', 'quiz', 'result'
+            const [age, setAge] = useState(null);
+            const [questions, setQuestions] = useState([]);
+            const [currentQuestion, setCurrentQuestion] = useState(0);
+            const [answers, setAnswers] = useState([]);
+            const [answerTimes, setAnswerTimes] = useState([]);
+            const [startTime, setStartTime] = useState(null);
+            const [isSimpleMode, setIsSimpleMode] = useState(false); // 간편 모드 상태 추가
+
+            const handleAgeSubmit = (selectedAge) => {
+                setAge(selectedAge);
+                setStep('welcome');
+            };
+
+            const toggleSimpleMode = () => {
+                setIsSimpleMode(prev => !prev);
+            };
+
+            const handleStart = (count, selectedAge, simpleMode) => {
+                let selectedQuestions = [];
+                if (simpleMode) {
+                    // 간편 모드 (2지선다)
+                    selectedQuestions = getSimpleQuestions(count);
+                } else {
+                    // 일반 모드 (4지선다, 연령별)
+                    selectedQuestions = getQuestionsByAge(selectedAge, count);
+                }
+                setQuestions(selectedQuestions);
+                setAnswers([]);
+                setAnswerTimes([]);
+                setCurrentQuestion(0);
+                setStartTime(Date.now());
+                setStep('quiz');
+            };
+
+            const handleAnswer = (answer) => {
+                const endTime = Date.now();
+                const timeTaken = endTime - startTime;
+
+                const newAnswers = [...answers, answer];
+                const newAnswerTimes = [...answerTimes, timeTaken];
+
+                if (currentQuestion < questions.length - 1) {
+                    setAnswers(newAnswers);
+                    setAnswerTimes(newAnswerTimes);
+                    setCurrentQuestion(prev => prev + 1);
+                    setStartTime(Date.now()); // 다음 질문 시작 시간 기록
+                } else {
+                    setAnswers(newAnswers);
+                    setAnswerTimes(newAnswerTimes);
+                    setStep('result');
+                }
+            };
+            
+            const handleRestart = () => {
+                setStep('ageInput');
+                setAge(null);
+                setQuestions([]);
+                setAnswers([]);
+                setAnswerTimes([]);
+                setIsSimpleMode(false);
+            };
+
+
+            return (
+                <div className={`min-h-screen ${isSimpleMode ? 'simple-mode-active' : ''}`} 
+                    style={{ background: isSimpleMode ? 'hsl(var(--background-simple))' : 'hsl(var(--background))' }}>
+                    <AnimatePresence mode="wait">
+                        {step === 'ageInput' && (
+                            <AgeInputScreen key="ageInput" onAgeSubmit={handleAgeSubmit} />
+                        )}
+                        {step === 'welcome' && (
+                            <WelcomeScreen 
+                                key="welcome" 
+                                onStart={handleStart} 
+                                age={age} 
+                                isSimpleMode={isSimpleMode} 
+                                toggleSimpleMode={toggleSimpleMode}
+                            />
+                        )}
+                        {step === 'quiz' && (
+                            <div key="quiz" className="min-h-screen flex items-center justify-center p-4">
+                                <QuestionCard
+                                    question={questions[currentQuestion].question}
+                                    options={questions[currentQuestion].options}
+                                    onAnswer={handleAnswer}
+                                    currentQuestion={currentQuestion}
+                                    totalQuestions={questions.length}
+                                    isSimpleMode={isSimpleMode}
+                                />
+                            </div>
+                        )}
+                        {step === 'result' && (
+                            <ResultScreen 
+                                key="result" 
+                                answers={answers} 
+                                answerTimes={answerTimes} 
+                                onRestart={handleRestart} 
+                            />
+                        )}
+                    </AnimatePresence>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
