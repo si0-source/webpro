@@ -3,20 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>질문 테스트 - 당신의 이야기를 들려주세요</title>
+    <title>질문 테스트 - 당신의 이야기를 들려주세요 (미니멀 최종)</title>
     <meta name="description" content="몇 가지 질문에 답하고 맞춤형 결과를 받아보세요" />
     
-    <!-- React and ReactDOM from CDN -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
-    <!-- Babel Standalone for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <!-- Framer Motion -->
     <script src="https://unpkg.com/framer-motion@11/dist/framer-motion.js"></script>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
@@ -25,7 +21,7 @@
             --foreground: 195 70% 12%;
             --card: 0 0% 100%;
             --card-foreground: 195 70% 12%;
-            --primary: 178 64% 48%;
+            --primary: 178 64% 48%; /* 민트 계열 */
             --primary-foreground: 0 0% 100%;
             --secondary: 195 15% 88%;
             --secondary-foreground: 195 70% 12%;
@@ -35,8 +31,9 @@
             --accent-foreground: 0 0% 100%;
             --border: 195 15% 88%;
             --radius: 0.75rem;
-            --gradient-primary: linear-gradient(135deg, hsl(178 64% 48%) 0%, hsl(195 85% 58%) 100%);
-            --shadow-card: 0 8px 30px -4px hsl(195 30% 60% / 0.2);
+            /* 미니멀 컨셉을 위해 그라데이션 대신 단색 배경 사용 */
+            --gradient-primary: hsl(var(--primary));
+            --shadow-card: 0 10px 40px -8px hsl(195 30% 60% / 0.1);
         }
         
         body {
@@ -78,7 +75,7 @@
         const { useState, useEffect, useRef } = React;
         const { motion, AnimatePresence } = Motion;
 
-        // Question Pool (40 questions)
+        // Question Pool (40 questions) - 동일
         const questionPool = [
             { question: "아침에 일어났을 때 가장 먼저 하는 일은?", options: ["SNS 확인", "스트레칭", "물 마시기", "침대에서 5분 더"] },
             { question: "주말 아침, 이상적인 시간은?", options: ["7시 이전", "8-9시", "10-11시", "정오 이후"] },
@@ -134,27 +131,29 @@
             return [];
         }
 
-        // Welcome Screen Component
+        // Welcome Screen Component (최종 개선: 글자 크기 축소 및 공간감 확보)
         function WelcomeScreen({ onStart }) {
             const questionOptions = [
-                { count: 5, time: "2분", description: "빠르게 당신을 알아보세요" },
-                { count: 7, time: "3분", description: "적당한 깊이의 분석" },
-                { count: 10, time: "5분", description: "상세한 성향 분석" }
+                { count: 5, time: "2분" },
+                { count: 7, time: "3분" },
+                { count: 10, time: "5분" }
             ];
 
             return (
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="min-h-screen flex items-center justify-center p-4"
-                    style={{ background: 'var(--gradient-primary)' }}
+                    className="min-h-screen flex items-center justify-center p-8" // p-8로 여백 늘림
+                    style={{ background: 'hsl(var(--background))' }}
                 >
-                    <div className="max-w-2xl w-full text-center text-white">
+                    <div className="max-w-4xl w-full text-center text-foreground p-12 bg-card rounded-2xl shadow-2xl border border-border/50"> {/* p-12로 카드 내부 여백 늘림 */}
                         <motion.h1
                             initial={{ opacity: 0, y: -20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
-                            className="text-5xl font-bold mb-6"
+                            // 글자 크기 축소 (7xl -> 5xl)
+                            className="text-5xl font-extrabold mb-3" 
+                            style={{ color: 'hsl(var(--foreground))' }} // 덜 튀는 색상
                         >
                             질문 테스트
                         </motion.h1>
@@ -162,27 +161,37 @@
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.4 }}
-                            className="text-xl mb-12 text-white/90"
+                            // 글자 크기 축소 (xl -> lg) 및 마진 축소 (mb-12 -> mb-8)
+                            className="text-lg mb-8 text-muted-foreground"
                         >
-                            당신의 이야기를 들려주세요
+                            테스트 길이를 선택하세요.
                         </motion.p>
                         
-                        <div className="space-y-4">
+                        {/* 선택지 영역 */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6"> {/* gap-4 -> gap-6으로 간격 늘림 */}
                             {questionOptions.map((option, index) => (
                                 <motion.button
                                     key={option.count}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
+                                    initial={{ opacity: 0, scale: 0.95 }} // 초기 스케일 조정
+                                    animate={{ opacity: 1, scale: 1 }}
                                     transition={{ delay: 0.6 + index * 0.1 }}
                                     onClick={() => onStart(option.count)}
-                                    className="w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 hover:bg-white/20 transition-all text-left"
+                                    // p-6 -> p-8로 버튼 내부 여백 늘림, hover 효과 변경
+                                    className="bg-secondary/10 border border-border rounded-xl p-8 hover:bg-secondary/30 transition-all text-center group flex flex-col items-center h-full"
                                 >
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <div className="text-2xl font-bold mb-1">{option.count}개 질문</div>
-                                            <div className="text-white/70 text-sm">{option.description}</div>
+                                    <div className="flex-grow">
+                                        {/* 질문 개수 글자 크기 축소 (5xl -> 4xl) */}
+                                        <div className="text-4xl font-extrabold mb-1 text-primary group-hover:text-primary transition">
+                                            {option.count}
                                         </div>
-                                        <div className="text-white/60 text-sm">{option.time}</div>
+                                        {/* "개 질문" 글자 크기 축소 (lg -> base) */}
+                                        <div className="text-base font-semibold text-foreground mb-3">
+                                            개 질문
+                                        </div>
+                                    </div>
+                                    {/* 소요 시간 뱃지 */}
+                                    <div className="text-muted-foreground text-sm font-medium px-3 py-1 bg-muted rounded-full w-fit">
+                                        {option.time} 소요
                                     </div>
                                 </motion.button>
                             ))}
@@ -192,7 +201,7 @@
             );
         }
 
-        // Question Card Component
+        // Question Card Component - 동일
         function QuestionCard({ question, options, onAnswer, currentQuestion, totalQuestions }) {
             const progress = ((currentQuestion + 1) / totalQuestions) * 100;
 
@@ -215,7 +224,7 @@
                                 animate={{ width: `${progress}%` }}
                                 transition={{ duration: 0.5 }}
                                 className="h-full"
-                                style={{ background: 'var(--gradient-primary)' }}
+                                style={{ backgroundColor: 'hsl(var(--primary))' }}
                             />
                         </div>
                     </div>
@@ -246,7 +255,7 @@
             );
         }
 
-        // Reaction Game Component
+        // Reaction Game Component - 동일
         function ReactionGame({ onComplete }) {
             const [stage, setStage] = useState("waiting");
             const [startTime, setStartTime] = useState(0);
@@ -327,7 +336,7 @@
             );
         }
 
-        // Timing Game Component
+        // Timing Game Component - 동일
         function TimingGame({ onComplete }) {
             const [position, setPosition] = useState(0);
             const [direction, setDirection] = useState(1);
@@ -401,7 +410,7 @@
             );
         }
 
-        // Rhythm Game Component  
+        // Rhythm Game Component - 동일
         function RhythmGame({ onComplete }) {
             const [notes, setNotes] = useState([]);
             const [score, setScore] = useState(0);
@@ -506,7 +515,7 @@
                             </div>
                             <div className="text-right">
                                 <div className="text-sm text-muted-foreground">Time</div>
-                                <div className="text-2xl font-bold">{gameTime}s</div>
+                                <div className="text-2xl font-bold">{gameTime}s}</div>
                             </div>
                         </div>
 
@@ -536,7 +545,7 @@
             );
         }
 
-        // Result Screen Component
+        // Result Screen Component - 동일
         function ResultScreen({ answers, answerTimes, miniGameScores, onRestart }) {
             const analyzeAnswerPattern = () => {
                 const firstAnswer = answers[0];
@@ -638,149 +647,126 @@
                         </div>
 
                         <div className="space-y-4 mb-8">
-                            <div className="p-4 bg-muted/30 rounded-lg">
-                                <div className="text-sm text-muted-foreground mb-1">평균 응답 시간</div>
-                                <div className="text-2xl font-bold text-foreground">{(result.avgTime / 1000).toFixed(1)}초</div>
+                            {/* 자세한 결과 지표를 보여줍니다. */}
+                            <div className="flex justify-between items-center bg-muted/30 p-3 rounded-lg">
+                                <span className="text-muted-foreground">평균 응답 시간:</span>
+                                <span className="font-semibold text-foreground">
+                                    {result.avgTime.toFixed(0)}ms
+                                </span>
                             </div>
-                            
-                            {miniGameScores.length > 0 && (
-                                <div className="p-4 bg-muted/30 rounded-lg">
-                                    <div className="text-sm text-muted-foreground mb-2">미니게임 점수</div>
-                                    <div className="space-y-2">
-                                        {miniGameScores.map((score, index) => (
-                                            <div key={index} className="flex justify-between">
-                                                <span>게임 {index + 1}</span>
-                                                <span className="font-bold text-primary">{score}점</span>
-                                            </div>
-                                        ))}
-                                        <div className="pt-2 border-t border-border flex justify-between">
-                                            <span className="font-semibold">평균</span>
-                                            <span className="font-bold text-primary">{Math.round(result.miniGameAvg)}점</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                            <div className="flex justify-between items-center bg-muted/30 p-3 rounded-lg">
+                                <span className="text-muted-foreground">미니게임 평균 점수:</span>
+                                <span className="font-semibold text-foreground">
+                                    {result.miniGameAvg.toFixed(0)}점
+                                </span>
+                            </div>
                         </div>
 
-                        <div className="flex gap-3">
-                            <button
-                                onClick={onRestart}
-                                className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90 transition"
-                            >
-                                다시 하기
-                            </button>
-                            <button
-                                onClick={() => {
-                                    if (navigator.share) {
-                                        navigator.share({
-                                            title: '질문 테스트 결과',
-                                            text: `나는 ${result.resultType}! ${result.totalScore}점을 받았어요!`,
-                                        });
-                                    }
-                                }}
-                                className="flex-1 px-6 py-3 bg-secondary text-secondary-foreground rounded-lg font-semibold hover:opacity-90 transition"
-                            >
-                                공유하기
-                            </button>
-                        </div>
+                        <button
+                            onClick={onRestart}
+                            className="w-full py-4 px-6 bg-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90 transition"
+                        >
+                            테스트 다시 시작
+                        </button>
                     </div>
                 </motion.div>
             );
         }
-
-        // Main App Component
+        
+        // App Component - 동일
         function App() {
-            const [stage, setStage] = useState("welcome");
-            const [currentQuestion, setCurrentQuestion] = useState(0);
+            const [gameState, setGameState] = useState('welcome'); // 'welcome', 'quiz', 'miniGame', 'result'
+            const [questions, setQuestions] = useState([]);
+            const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
             const [answers, setAnswers] = useState([]);
             const [answerTimes, setAnswerTimes] = useState([]);
+            const [questionStartTime, setQuestionStartTime] = useState(0);
             const [miniGameScores, setMiniGameScores] = useState([]);
-            const [selectedQuestions, setSelectedQuestions] = useState([]);
-            const [questionCount, setQuestionCount] = useState(5);
-            const answerStartTime = useRef(Date.now());
+            const [totalQuestions, setTotalQuestions] = useState(0);
 
-            const handleStart = (count) => {
-                setQuestionCount(count);
-                setSelectedQuestions(getRandomQuestions(count));
-                setStage("questions");
-                answerStartTime.current = Date.now();
+            const miniGamePositions = getMiniGamePositions(totalQuestions);
+
+            const startQuiz = (count) => {
+                setTotalQuestions(count);
+                setQuestions(getRandomQuestions(count - miniGamePositions.length));
+                setAnswers([]);
+                setAnswerTimes([]);
+                setMiniGameScores([]);
+                setCurrentQuestionIndex(0);
+                setGameState('quiz');
+                setQuestionStartTime(Date.now());
             };
 
             const handleAnswer = (answer) => {
-                const timeSpent = Date.now() - answerStartTime.current;
-                setAnswers([...answers, answer]);
-                setAnswerTimes([...answerTimes, timeSpent]);
+                const answerTime = Date.now() - questionStartTime;
+                setAnswers(prev => [...prev, answer]);
+                setAnswerTimes(prev => [...prev, answerTime]);
 
-                const miniGamePositions = getMiniGamePositions(questionCount);
-                const nextQuestion = currentQuestion + 1;
+                const nextIndex = currentQuestionIndex + 1;
 
-                if (miniGamePositions.includes(nextQuestion)) {
-                    setStage("minigame");
-                } else if (nextQuestion >= questionCount) {
-                    setStage("result");
+                if (miniGamePositions.includes(nextIndex)) {
+                    setGameState('miniGame');
+                    setCurrentQuestionIndex(nextIndex); // 미니게임 후 퀴즈 인덱스에 사용
+                } else if (nextIndex >= totalQuestions) {
+                    setGameState('result');
                 } else {
-                    setCurrentQuestion(nextQuestion);
-                    answerStartTime.current = Date.now();
+                    setCurrentQuestionIndex(nextIndex);
+                    setQuestionStartTime(Date.now());
                 }
             };
 
             const handleMiniGameComplete = (score) => {
-                setMiniGameScores([...miniGameScores, score]);
-                const nextQuestion = currentQuestion + 1;
-                
-                if (nextQuestion >= questionCount) {
-                    setStage("result");
+                setMiniGameScores(prev => [...prev, score]);
+
+                const nextIndex = currentQuestionIndex + 1;
+
+                if (nextIndex >= totalQuestions) {
+                    setGameState('result');
                 } else {
-                    setCurrentQuestion(nextQuestion);
-                    setStage("questions");
-                    answerStartTime.current = Date.now();
+                    setCurrentQuestionIndex(nextIndex);
+                    setGameState('quiz');
+                    setQuestionStartTime(Date.now());
                 }
             };
 
-            const handleRestart = () => {
-                setStage("welcome");
-                setCurrentQuestion(0);
-                setAnswers([]);
-                setAnswerTimes([]);
-                setMiniGameScores([]);
-                setSelectedQuestions([]);
+            const getMiniGameComponent = () => {
+                const minigameIndex = miniGameScores.length % 3;
+                if (minigameIndex === 0) return <ReactionGame onComplete={handleMiniGameComplete} />;
+                if (minigameIndex === 1) return <TimingGame onComplete={handleMiniGameComplete} />;
+                if (minigameIndex === 2) return <RhythmGame onComplete={handleMiniGameComplete} />;
+                return null;
             };
 
-            const miniGameTypes = ["reaction", "timing", "rhythm"];
-            const currentMiniGame = miniGameTypes[miniGameScores.length % 3];
+            const questionIndexInPool = currentQuestionIndex - miniGameScores.length;
 
             return (
-                <div className="min-h-screen p-4 flex items-center justify-center">
+                <div className="min-h-screen flex items-center justify-center p-4">
                     <AnimatePresence mode="wait">
-                        {stage === "welcome" && (
-                            <WelcomeScreen key="welcome" onStart={handleStart} />
+                        {gameState === 'welcome' && (
+                            <WelcomeScreen key="welcome" onStart={startQuiz} />
                         )}
-                        {stage === "questions" && (
+                        {gameState === 'quiz' && questionIndexInPool < questions.length && (
                             <QuestionCard
-                                key={`question-${currentQuestion}`}
-                                question={selectedQuestions[currentQuestion].question}
-                                options={selectedQuestions[currentQuestion].options}
+                                key={`question-${questionIndexInPool}`}
+                                question={questions[questionIndexInPool].question}
+                                options={questions[questionIndexInPool].options}
                                 onAnswer={handleAnswer}
-                                currentQuestion={currentQuestion}
-                                totalQuestions={questionCount}
+                                currentQuestion={currentQuestionIndex}
+                                totalQuestions={totalQuestions}
                             />
                         )}
-                        {stage === "minigame" && currentMiniGame === "reaction" && (
-                            <ReactionGame key="reaction" onComplete={handleMiniGameComplete} />
+                        {gameState === 'miniGame' && (
+                            <div key="minigame" className="w-full max-w-2xl mx-auto">
+                                {getMiniGameComponent()}
+                            </div>
                         )}
-                        {stage === "minigame" && currentMiniGame === "timing" && (
-                            <TimingGame key="timing" onComplete={handleMiniGameComplete} />
-                        )}
-                        {stage === "minigame" && currentMiniGame === "rhythm" && (
-                            <RhythmGame key="rhythm" onComplete={handleMiniGameComplete} />
-                        )}
-                        {stage === "result" && (
-                            <ResultScreen
+                        {gameState === 'result' && (
+                            <ResultScreen 
                                 key="result"
                                 answers={answers}
                                 answerTimes={answerTimes}
                                 miniGameScores={miniGameScores}
-                                onRestart={handleRestart}
+                                onRestart={() => setGameState('welcome')}
                             />
                         )}
                     </AnimatePresence>
@@ -788,9 +774,7 @@
             );
         }
 
-        // Render the app
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        ReactDOM.render(<App />, document.getElementById('root'));
     </script>
 </body>
 </html>
