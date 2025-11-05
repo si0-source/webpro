@@ -1,296 +1,1278 @@
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { motion } from "framer-motion";
-import { RefreshCw, Share2, Sparkles } from "lucide-react";
-
-interface ResultScreenProps {
-  answers: string[];
-  answerTimes: number[];
-  miniGameScores: number[];
-  onRestart: () => void;
-}
-
-export const ResultScreen = ({ answers, answerTimes, miniGameScores, onRestart }: ResultScreenProps) => {
-  // 답변 패턴 분석
-  const analyzeAnswerPattern = () => {
-    // 같은 답변을 반복적으로 선택했는지 확인
-    const answerCounts = answers.reduce((acc, answer) => {
-      acc[answer] = (acc[answer] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    
-    const maxRepeats = Math.max(...Object.values(answerCounts));
-    const hasRepeatedPattern = maxRepeats >= 5;
-    
-    // 너무 빨리 답변했는지 확인 (평균 2초 이하)
-    const averageTime = answerTimes.reduce((sum, time) => sum + time, 0) / answerTimes.length;
-    const answeredTooQuickly = averageTime < 2;
-    
-    return { hasRepeatedPattern, answeredTooQuickly, maxRepeats, averageTime };
-  };
-
-  const getComprehensiveResult = () => {
-    const { averageTime } = analyzeAnswerPattern();
-    const totalMiniGameScore = miniGameScores.reduce((sum, score) => sum + score, 0);
-    const avgMiniGameScore = totalMiniGameScore / miniGameScores.length;
-    
-    // 답변 속도 점수 (빠를수록 높음, 최대 30점)
-    const speedScore = Math.min(30, Math.max(0, 30 - averageTime * 3));
-    
-    // 미니게임 점수 (최대 50점)
-    const gameScore = Math.min(50, avgMiniGameScore / 2);
-    
-    // 답변 일관성 점수 (최대 20점) - 너무 반복적이지 않으면서도 패턴이 있는지
-    const answerCounts = answers.reduce((acc, answer) => {
-      acc[answer] = (acc[answer] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    const variance = Object.values(answerCounts).reduce((sum, count) => sum + Math.pow(count - answers.length / Object.keys(answerCounts).length, 2), 0);
-    const consistencyScore = Math.min(20, variance * 2);
-    
-    const totalScore = Math.round(speedScore + gameScore + consistencyScore);
-    
-    // 총점에 따른 유형 결정
-    let resultType = "";
-    let resultDescription = "";
-    let resultDetail = "";
-    let resultEmoji = "";
-    
-    if (totalScore >= 80) {
-      resultType = "완벽주의 달성자";
-      resultDescription = "빠른 판단력과 뛰어난 집중력을 동시에 보유한 유형입니다.";
-      resultDetail = "당신은 상황을 빠르게 파악하고 즉각적으로 최선의 선택을 내립니다. 미니게임에서도 높은 집중력을 보여주었고, 답변 패턴도 일관성이 있습니다. 이런 당신은 중요한 결정을 내려야 하는 순간에 특히 빛을 발하며, 주변 사람들이 믿고 따르는 리더형입니다. 다만 때로는 너무 완벽을 추구하다 보니 작은 실수에도 스트레스를 받을 수 있으니, 가끔은 여유를 가지는 것도 필요합니다.";
-      resultEmoji = "🏆";
-    } else if (totalScore >= 65) {
-      resultType = "밸런스 마스터";
-      resultDescription = "신중함과 빠른 판단력의 균형이 잘 잡힌 유형입니다.";
-      resultDetail = "당신은 상황에 따라 빠르게 결정하기도 하고, 필요할 때는 충분히 고민하는 유연성을 가지고 있습니다. 미니게임 점수와 답변 속도 모두 안정적이며, 극단적이지 않은 중도적 선택을 선호합니다. 이런 균형감각은 팀 프로젝트나 그룹 활동에서 조율자 역할을 하기에 적합합니다. 다만 때로는 우유부단해 보일 수 있으니, 중요한 순간에는 자신의 의견을 명확히 하는 연습이 필요합니다.";
-      resultEmoji = "⚖️";
-    } else if (totalScore >= 50) {
-      resultType = "신중한 사색가";
-      resultDescription = "충분한 고민 끝에 결정을 내리는 사려 깊은 유형입니다.";
-      resultDetail = "당신은 답변에 시간을 충분히 들이며, 각 선택지를 꼼꼼히 검토하는 스타일입니다. 급하게 판단하기보다는 모든 가능성을 생각해본 후 결정을 내립니다. 이런 신중함은 중요한 결정에서 실수를 줄여주지만, 일상적인 선택에서는 너무 많은 에너지를 소비할 수 있습니다. 때로는 직관을 믿고 빠르게 결정하는 연습도 필요합니다. 당신의 깊이 있는 사고방식은 문제 해결 능력의 핵심입니다.";
-      resultEmoji = "🤔";
-    } else if (totalScore >= 35) {
-      resultType = "자유로운 탐험가";
-      resultDescription = "결과보다는 과정을 즐기는 여유로운 유형입니다.";
-      resultDetail = "당신은 정해진 틀에 얽매이지 않고 자유롭게 선택하는 스타일입니다. 미니게임에서도 점수에 연연하기보다는 재미를 추구하며, 답변 패턴도 예측하기 어려운 독특함이 있습니다. 이런 자유로움은 창의적인 아이디어를 내는 데 도움이 되지만, 때로는 일관성 부족으로 보일 수 있습니다. 중요한 상황에서는 조금 더 집중력을 발휘한다면, 당신의 창의성이 더 빛날 것입니다.";
-      resultEmoji = "🎨";
-    } else {
-      resultType = "마이웨이 도전자";
-      resultDescription = "자신만의 독특한 방식으로 문제에 접근하는 유형입니다.";
-      resultDetail = "당신은 남들과 다른 시각으로 상황을 바라보며, 전혀 예상치 못한 선택을 하는 경우가 많습니다. 답변 시간이 불규칙하고 패턴도 일정하지 않지만, 그것이 오히려 당신만의 독창성입니다. 다만 이런 스타일은 때로 주변 사람들이 이해하기 어려울 수 있으니, 중요한 결정에서는 다른 사람들과 소통하며 생각을 공유하는 것이 좋습니다. 당신의 독특한 관점은 새로운 해결책을 찾는 데 큰 강점이 될 수 있습니다.";
-      resultEmoji = "🎯";
-    }
-    
-    return {
-      totalScore,
-      speedScore: Math.round(speedScore),
-      gameScore: Math.round(gameScore),
-      consistencyScore: Math.round(consistencyScore),
-      resultType,
-      resultDescription,
-      resultDetail,
-      resultEmoji,
-    };
-  };
-
-  const { hasRepeatedPattern, answeredTooQuickly, maxRepeats } = analyzeAnswerPattern();
-  const isSpecialResult = hasRepeatedPattern || answeredTooQuickly;
-  const comprehensiveResult = getComprehensiveResult();
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="w-full max-w-3xl mx-auto px-4"
-    >
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-        className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center mx-auto mb-6 shadow-lg"
-      >
-        <Sparkles className="w-8 h-8 text-white" />
-      </motion.div>
-
-      <motion.h1
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="text-4xl md:text-5xl font-bold text-center mb-4"
-      >
-        {isSpecialResult ? "잠깐만요! 🤔" : "결과가 나왔습니다!"}
-      </motion.h1>
-
-      <motion.p
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.4 }}
-        className="text-xl text-muted-foreground text-center mb-12"
-      >
-        {isSpecialResult 
-          ? "당신의 답변 패턴이 조금 특이합니다..." 
-          : "당신의 답변을 분석했습니다"
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>질문 테스트 - 당신의 이야기를 들려주세요</title>
+    <meta name="description" content="몇 가지 질문에 답하고 맞춤형 결과를 받아보세요">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-      </motion.p>
 
-      <motion.div
-        initial={{ y: 30, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.5 }}
-      >
-        <Card className="p-8 shadow-[var(--shadow-card)] border-border/50 backdrop-blur-sm bg-card/80 mb-6">
-          {isSpecialResult ? (
-            <div className="text-center mb-6">
-              <div className="inline-block px-4 py-2 rounded-full bg-destructive/10 text-destructive font-semibold mb-4">
-                특별 결과
-              </div>
-              <h2 className="text-3xl font-bold mb-4 text-destructive">
-                성실하지 않은 답변자 유형
-              </h2>
-              <div className="space-y-4 text-left">
-                {hasRepeatedPattern && (
-                  <div className="p-4 bg-muted rounded-lg">
-                    <p className="text-lg font-semibold mb-2">🔄 반복 패턴 감지</p>
-                    <p className="text-muted-foreground">
-                      같은 답변을 <strong className="text-destructive">{maxRepeats}번</strong> 선택하셨습니다.
-                      진지하게 답변해주세요!
-                    </p>
-                  </div>
-                )}
-                {answeredTooQuickly && (
-                  <div className="p-4 bg-muted rounded-lg">
-                    <p className="text-lg font-semibold mb-2">⚡ 너무 빠른 응답</p>
-                    <p className="text-muted-foreground">
-                      평균 답변 시간이 <strong className="text-destructive">2초 미만</strong>입니다.
-                      각 질문을 충분히 고민하고 답변해주세요.
-                    </p>
-                  </div>
-                )}
-                <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg mt-6">
-                  <p className="text-center text-muted-foreground">
-                    정확한 결과를 위해 각 질문을 신중하게 읽고<br />
-                    솔직하게 답변해주시기 바랍니다.
-                  </p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="mb-6">
-              <div className="text-center">
-                <div className="text-6xl mb-4">{comprehensiveResult.resultEmoji}</div>
-                <div className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary font-semibold mb-4">
-                  당신의 유형
-                </div>
-                <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  {comprehensiveResult.resultType}
-                </h2>
-                <p className="text-lg font-semibold text-foreground mb-6">
-                  {comprehensiveResult.resultDescription}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+            min-height: 100vh;
+            padding: 3rem 1rem;
+            color: #0c4a6e;
+        }
+
+        .container {
+            max-width: 48rem;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 8px 30px -4px rgba(8, 145, 178, 0.2);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .icon-circle {
+            width: 5rem;
+            height: 5rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0891b2 0%, #67e8f9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2.5rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #0891b2 0%, #67e8f9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 3rem;
+            line-height: 1.8;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 640px) {
+            .btn-group {
+                flex-direction: row;
+                justify-content: center;
+            }
+        }
+
+        .btn {
+            padding: 1.5rem 2rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.75rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            border-color: #0891b2;
+            background: rgba(8, 145, 178, 0.05);
+        }
+
+        .btn-number {
+            font-size: 2rem;
+            color: #0891b2;
+        }
+
+        .btn-text {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .btn-time {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 0.5rem;
+            background: #e2e8f0;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0891b2 0%, #67e8f9 100%);
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+
+        .question-title {
+            font-size: 1.875rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            color: #0c4a6e;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option-btn {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.75rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.125rem;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .option-btn:hover {
+            background: rgba(8, 145, 178, 0.1);
+            border-color: #67e8f9;
+        }
+
+        .option-letter {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: rgba(8, 145, 178, 0.1);
+            color: #0891b2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .game-area {
+            height: 24rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 2rem 0;
+        }
+
+        .game-waiting { background: rgba(148, 163, 184, 0.3); color: #64748b; }
+        .game-ready { background: rgba(251, 191, 36, 0.2); color: #d97706; }
+        .game-go { background: #10b981; color: white; }
+        .game-early { background: rgba(239, 68, 68, 0.2); color: #dc2626; }
+        .game-result { background: rgba(148, 163, 184, 0.3); color: #0891b2; }
+
+        .game-timing {
+            position: relative;
+            background: rgba(148, 163, 184, 0.3);
+            overflow: hidden;
+        }
+
+        .target-zone {
+            position: absolute;
+            width: 5rem;
+            height: 100%;
+            background: rgba(8, 145, 178, 0.1);
+            border-left: 2px solid rgba(8, 145, 178, 0.3);
+            border-right: 2px solid rgba(8, 145, 178, 0.3);
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .target-line {
+            position: absolute;
+            width: 0.25rem;
+            height: 100%;
+            background: #0891b2;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .timing-bar {
+            position: absolute;
+            width: 1rem;
+            height: 100%;
+            background: linear-gradient(90deg, #67e8f9 0%, #0891b2 100%);
+            box-shadow: 0 4px 20px rgba(8, 145, 178, 0.5);
+        }
+
+        .game-rhythm {
+            position: relative;
+            background: rgba(148, 163, 184, 0.3);
+            overflow: hidden;
+        }
+
+        .rhythm-target-line {
+            position: absolute;
+            width: 100%;
+            height: 0.25rem;
+            background: rgba(8, 145, 178, 0.5);
+            top: 90%;
+            animation: pulse 1s infinite;
+        }
+
+        .rhythm-target-zone {
+            position: absolute;
+            width: 100%;
+            height: 5rem;
+            background: rgba(8, 145, 178, 0.1);
+            border-top: 2px solid rgba(8, 145, 178, 0.3);
+            border-bottom: 2px solid rgba(8, 145, 178, 0.3);
+            top: calc(90% - 2.5rem);
+        }
+
+        .rhythm-note {
+            position: absolute;
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0891b2 0%, rgba(8, 145, 178, 0.7) 100%);
+            box-shadow: 0 4px 20px rgba(8, 145, 178, 0.5);
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .rhythm-note.hit {
+            background: #10b981;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .game-score {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #0891b2;
+        }
+
+        .game-timer {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .game-combo {
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #0891b2;
+            margin-bottom: 1rem;
+        }
+
+        .result-type {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .result-emoji {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            background: rgba(8, 145, 178, 0.1);
+            color: #0891b2;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .result-title {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #0891b2 0%, #67e8f9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .result-description {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #0c4a6e;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-score-box {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            background: linear-gradient(135deg, rgba(8, 145, 178, 0.1) 0%, rgba(103, 232, 249, 0.1) 100%);
+            border: 2px solid rgba(8, 145, 178, 0.2);
+            margin-bottom: 1.5rem;
+        }
+
+        .result-score-label {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-score-value {
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #0891b2 0%, #67e8f9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .result-score-max {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+
+        .result-detail-box {
+            margin-top: 1.5rem;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            background: rgba(148, 163, 184, 0.3);
+            border: 1px solid rgba(203, 213, 225, 0.5);
+        }
+
+        .result-detail-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #0891b2;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .result-detail-text {
+            font-size: 0.875rem;
+            line-height: 1.7;
+            color: #64748b;
+            text-align: left;
+        }
+
+        .score-breakdown {
+            border-top: 1px solid #cbd5e1;
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            background: rgba(148, 163, 184, 0.5);
+            margin-bottom: 0.75rem;
+        }
+
+        .score-item-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .score-item-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #0891b2;
+        }
+
+        .minigame-scores {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .minigame-score-item {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background: rgba(148, 163, 184, 0.5);
+        }
+
+        .minigame-score-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0891b2;
+        }
+
+        .minigame-score-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        @media (min-width: 640px) {
+            .action-buttons {
+                flex-direction: row;
+                justify-content: center;
+            }
+        }
+
+        .action-btn {
+            padding: 0.75rem 2rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.75rem;
+            background: white;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: #f8fafc;
+        }
+
+        .action-btn-primary {
+            background: linear-gradient(90deg, #0891b2 0%, #67e8f9 100%);
+            color: white;
+            border: none;
+        }
+
+        .action-btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .game-instruction {
+            text-align: center;
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-top: 1rem;
+        }
+
+        .feedback-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            animation: feedbackPulse 0.3s ease-out;
+        }
+
+        @keyframes feedbackPulse {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.5); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 1; }
+        }
+
+        .feedback-text {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .feedback-perfect { color: #fbbf24; }
+        .feedback-good { color: #10b981; }
+        .feedback-ok { color: #3b82f6; }
+        .feedback-miss { color: #ef4444; }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="container"></div>
+
+    <script>
+        // 질문 풀
+        const questionPool = [
+            { question: "친구가 내 물건을 허락 없이 썼어요. 어떻게 하시나요?", options: ["다음부턴 물어보고 쓰라고 말한다", "괜찮다고 하지만 속으론 불편하다", "화가 나서 따지듯이 말한다", "별로 신경 안 쓴다"] },
+            { question: "시험 일주일 전인데 재밌는 드라마가 있어요.", options: ["시험 끝나고 몰아본다", "하루 1화씩만 본다", "공부하다가 쉴 때 본다", "일단 끝까지 본다"] },
+            { question: "단체 채팅방에서 나만 답장을 안 했어요.", options: ["늦었지만 바로 답장한다", "나중에 개인적으로 말한다", "다음 대화 때 참여한다", "안 본 척한다"] },
+            { question: "친구가 약속에 30분 늦었어요.", options: ["왜 늦었는지 물어본다", "다음엔 시간 지키자고 말한다", "별말 없이 기다렸다고만 한다", "나도 다음엔 늦게 나온다"] },
+            { question: "조별과제 회의 시간을 정해야 해요.", options: ["내가 시간표 공유하며 제안한다", "다른 사람들이 말할 때까지 기다린다", "투표로 정하자고 제안한다", "다수가 되는 시간에 맞춘다"] },
+            { question: "식당에서 주문한 음식이 잘못 나왔어요.", options: ["바로 말씀드려서 바꾼다", "괜찮은 메뉴면 그냥 먹는다", "먹으면서 다음엔 확인하자 생각한다", "불편하지만 그냥 먹는다"] },
+            { question: "친구가 고민상담을 해요.", options: ["해결책을 제시한다", "공감하며 들어준다", "비슷한 내 경험을 말해준다", "긍정적으로 격려한다"] },
+            { question: "갑자기 모르는 번호에서 전화가 와요.", options: ["받아서 누군지 확인한다", "검색해보고 받을지 결정한다", "일단 안 받고 문자 오면 본다", "모르는 번호는 안 받는다"] },
+            { question: "과제 제출일이 내일인데 거의 안 했어요.", options: ["밤새서라도 끝낸다", "할 수 있는 만큼만 한다", "교수님께 연장 요청한다", "친구에게 도움을 청한다"] },
+            { question: "친구들이 내가 모르는 얘기를 해요.", options: ["무슨 얘기인지 물어본다", "웃으면서 듣고 있는다", "다른 주제로 바꾼다", "핸드폰을 본다"] },
+            { question: "편의점에서 계산할 때 줄이 길어요.", options: ["기다리면서 살 거 더 둘러본다", "그냥 참고 기다린다", "다음에 사러 오려고 나간다", "다른 편의점을 찾아본다"] },
+            { question: "SNS에서 내가 올린 게시물에 반응이 없어요.", options: ["별로 신경 안 쓴다", "조금 아쉽지만 괜찮다", "다음엔 더 잘 올려야겠다고 생각한다", "지우고 다시 올린다"] },
+            { question: "친구가 비밀을 말해주지 말라고 했는데 다른 친구가 물어봐요.", options: ["말 못 한다고 정확히 말한다", "대충 얼버무린다", "다른 주제로 돌린다", "살짝만 힌트를 준다"] },
+            { question: "카페에서 공부하는데 옆자리가 시끄러워요.", options: ["조용히 해달라고 정중히 말한다", "자리를 옮긴다", "이어폰을 낀다", "참고 집중한다"] },
+            { question: "친구가 내 의견에 동의하지 않아요.", options: ["왜 그렇게 생각하는지 물어본다", "내 생각을 더 설명한다", "동의는 안 하지만 인정한다", "더 이상 얘기하지 않는다"] },
+            { question: "새 학기에 모르는 사람들과 같은 조가 됐어요.", options: ["먼저 인사하고 말 건넨다", "누가 말 걸어주길 기다린다", "웃으면서 자연스럽게 대화 참여한다", "필요할 때만 얘기한다"] },
+            { question: "친구가 내 SNS 게시물에 이상한 댓글을 달았어요.", options: ["직접 물어본다", "장난으로 받아들인다", "무시한다", "댓글을 지운다"] },
+            { question: "수업 중에 궁금한 게 생겼어요.", options: ["바로 손 들고 질문한다", "수업 끝나고 질문한다", "친구에게 물어본다", "나중에 혼자 찾아본다"] },
+            { question: "약속 장소를 정해야 하는데 의견이 안 모여요.", options: ["중간 지점을 제안한다", "투표를 제안한다", "가장 많은 사람이 편한 곳으로 한다", "내가 양보한다"] },
+            { question: "친구가 내 물건을 빌려달라고 해요.", options: ["조심히 쓰라고 하고 빌려준다", "언제 돌려줄지 확인하고 빌려준다", "미안하지만 안 빌려준다고 한다", "다음에 빌려주겠다고 한다"] },
+            { question: "밤늦게까지 게임하다가 다음날 아침에 일어나기 힘들어요.", options: ["알람 여러 개 맞춰놓는다", "게임 시간을 줄인다", "그냥 피곤하지만 일어난다", "좀 더 자고 늦게 일어난다"] },
+            { question: "친구가 내 약점을 농담으로 말했어요.", options: ["웃으면서 받아치지만 속상하다", "진지하게 불편하다고 말한다", "같이 웃는다", "말없이 표정이 굳는다"] },
+            { question: "길에서 지갑을 주웠어요.", options: ["바로 경찰서에 가져간다", "주변 사람에게 물어본다", "주인 연락처 찾아서 연락한다", "근처 가게에 맡긴다"] },
+            { question: "그룹 과제에서 내 의견이 채택되지 않았어요.", options: ["다른 의견도 좋다고 인정한다", "왜 내 의견이 안 좋은지 물어본다", "조용히 아쉬워한다", "다음엔 더 설득력있게 말해야겠다고 생각한다"] },
+            { question: "배달 음식이 늦게 와요.", options: ["전화해서 확인한다", "조금 더 기다린다", "다른 거 시켜먹는다", "참고 기다리면서 배고픔을 참는다"] },
+            { question: "친구가 내 비밀을 다른 사람에게 말했어요.", options: ["화내며 따진다", "실망했다고 말한다", "거리를 둔다", "그냥 넘어간다"] },
+            { question: "시험 전날 친구가 놀자고 해요.", options: ["미안하지만 거절한다", "잠깐만 보자고 한다", "시험 끝나고 보자고 한다", "그냥 만난다"] },
+            { question: "인터넷에서 내 의견과 다른 댓글을 봤어요.", options: ["내 생각을 댓글로 남긴다", "그냥 넘어간다", "왜 그렇게 생각하는지 궁금하다", "짜증나지만 무시한다"] },
+            { question: "버스에서 할머니가 서 계세요.", options: ["바로 자리를 양보한다", "주변을 보고 다른 사람도 안 일어나면 일어난다", "피곤해서 잠깐 더 앉아있다가 내리기 전에 양보한다", "자는 척한다"] },
+            { question: "친구 생일인데 선물을 준비 못했어요.", options: ["급하게라도 사러 간다", "솔직하게 말하고 다음에 사준다고 한다", "밥을 사준다", "축하 메시지만 보낸다"] },
+            { question: "수업 시간에 선생님이 틀린 말씀을 하셨어요.", options: ["손들고 정중히 질문한다", "수업 끝나고 말씀드린다", "친구들에게만 말한다", "그냥 넘어간다"] },
+            { question: "단체 채팅에서 나에 대한 안 좋은 얘기가 올라왔어요.", options: ["바로 해명한다", "개인적으로 따로 얘기한다", "무시한다", "채팅방을 나간다"] },
+            { question: "친구가 돈을 빌려달라고 해요.", options: ["언제 갚을지 확인하고 빌려준다", "빌려줄 수 없다고 정중히 거절한다", "다른 방법을 제안한다", "적은 금액만 빌려준다"] },
+            { question: "좋아하는 연예인이 논란에 휩싸였어요.", options: ["사실 확인될 때까지 기다린다", "팬이지만 잘못은 잘못이라고 생각한다", "무조건 편을 든다", "관심을 끊는다"] },
+            { question: "학교에서 내 물건이 없어졌어요.", options: ["선생님께 말씀드린다", "친구들에게 물어본다", "혼자 찾아본다", "그냥 포기한다"] },
+            { question: "친구가 시험 답을 보여달라고 해요.", options: ["단호하게 거절한다", "나중에 같이 공부하자고 한다", "난처해하며 거절한다", "살짝 보여준다"] },
+            { question: "좋아하는 사람이 내 친구를 좋아하는 것 같아요.", options: ["친구에게 솔직하게 말한다", "혼자 속상해한다", "포기한다", "더 열심히 어필한다"] },
+            { question: "단체 사진에서 내가 이상하게 나왔어요.", options: ["다시 찍자고 한다", "그냥 올린다", "내가 나온 부분을 가려달라고 한다", "내가 안 나온 사진만 올려달라고 한다"] },
+            { question: "친구가 내 고민을 진지하게 안 들어줘요.", options: ["진지하게 들어달라고 말한다", "다른 친구에게 말한다", "혼자 해결한다", "서운하지만 그냥 넘어간다"] },
+            { question: "길에서 넘어진 사람을 봤어요.", options: ["바로 달려가서 일으켜준다", "괜찮은지 물어본다", "주변을 보다가 아무도 안 도와주면 돕는다", "지나간다"] }
+        ];
+
+        // 전역 상태
+        let state = {
+            stage: 'welcome',
+            questionCount: 7,
+            selectedQuestions: [],
+            currentQuestion: 0,
+            answers: [],
+            answerTimes: [],
+            questionStartTime: 0,
+            miniGameScores: [],
+            currentMiniGame: 'reaction',
+            // 게임별 상태
+            reactionStage: 'waiting',
+            reactionStartTime: 0,
+            reactionTime: 0,
+            timingPosition: 0,
+            timingDirection: 1,
+            timingStopped: false,
+            timingResult: null,
+            rhythmNotes: [],
+            rhythmScore: 0,
+            rhythmCombo: 0,
+            rhythmGameTime: 0,
+            rhythmFeedback: ''
+        };
+
+        // 유틸리티 함수
+        function getRandomQuestions(count) {
+            const shuffled = [...questionPool].sort(() => Math.random() - 0.5);
+            return shuffled.slice(0, count);
+        }
+
+        function getMiniGamePositions(count) {
+            if (count === 5) return [1, 3];
+            if (count === 7) return [1, 3, 5];
+            if (count === 10) return [2, 5, 7];
+            return [1, 3, 5];
+        }
+
+        // 렌더링 함수들
+        function render() {
+            const app = document.getElementById('app');
+            
+            if (state.stage === 'welcome') {
+                app.innerHTML = renderWelcome();
+            } else if (state.stage === 'questions') {
+                app.innerHTML = renderQuestion();
+            } else if (state.stage === 'minigame') {
+                if (state.currentMiniGame === 'reaction') {
+                    app.innerHTML = renderReactionGame();
+                    startReactionGame();
+                } else if (state.currentMiniGame === 'timing') {
+                    app.innerHTML = renderTimingGame();
+                    startTimingGame();
+                } else if (state.currentMiniGame === 'rhythm') {
+                    app.innerHTML = renderRhythmGame();
+                    startRhythmGame();
+                }
+            } else if (state.stage === 'result') {
+                app.innerHTML = renderResult();
+            }
+        }
+
+        function renderWelcome() {
+            return `
+                <div class="icon-circle">❓</div>
+                <h1>당신의 이야기를 들려주세요</h1>
+                <p class="subtitle">
+                    몇 가지 질문에 답하시면 맞춤형 결과를 제공해드립니다.<br>
+                    솔직하게 답변해주세요!
                 </p>
-                <div className="text-center p-6 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary/20 mb-6">
-                  <div className="text-sm text-muted-foreground mb-2">종합 점수</div>
-                  <div className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                    {comprehensiveResult.totalScore}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">/ 100점</div>
+                <p style="text-align: center; font-size: 1.125rem; font-weight: 600; margin-bottom: 1.5rem;">문제 개수를 선택하세요</p>
+                <div class="btn-group">
+                    <button class="btn" onclick="handleStart(5)">
+                        <span class="btn-number">5문제</span>
+                        <span class="btn-text">빠르게</span>
+                        <span class="btn-time">약 1분 소요</span>
+                    </button>
+                    <button class="btn" onclick="handleStart(7)">
+                        <span class="btn-number">7문제</span>
+                        <span class="btn-text">적당하게</span>
+                        <span class="btn-time">약 2분 소요</span>
+                    </button>
+                    <button class="btn" onclick="handleStart(10)">
+                        <span class="btn-number">10문제</span>
+                        <span class="btn-text">깊이있게</span>
+                        <span class="btn-time">약 3분 소요</span>
+                    </button>
                 </div>
-              </div>
-              
-              <div className="mt-6 p-5 rounded-lg bg-muted/30 border border-border/50">
-                <h3 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
-                  <span className="w-1 h-4 bg-primary rounded-full"></span>
-                  세부 분석
-                </h3>
-                <p className="text-sm leading-relaxed text-muted-foreground text-left">
-                  {comprehensiveResult.resultDetail}
-                </p>
-              </div>
-            </div>
-          )}
+            `;
+        }
 
-          {!isSpecialResult && (
-            <>
-              <div className="border-t border-border pt-6 mt-6">
-                <h3 className="font-semibold mb-4 text-lg">세부 점수</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">⚡</span>
-                      <span className="text-sm font-medium">판단 속도</span>
-                    </div>
-                    <div className="text-xl font-bold text-primary">{comprehensiveResult.speedScore}/30</div>
-                  </div>
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">🎮</span>
-                      <span className="text-sm font-medium">미니게임 실력</span>
-                    </div>
-                    <div className="text-xl font-bold text-primary">{comprehensiveResult.gameScore}/50</div>
-                  </div>
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">🎯</span>
-                      <span className="text-sm font-medium">답변 일관성</span>
-                    </div>
-                    <div className="text-xl font-bold text-primary">{comprehensiveResult.consistencyScore}/20</div>
-                  </div>
+        function renderQuestion() {
+            const q = state.selectedQuestions[state.currentQuestion];
+            const progress = ((state.currentQuestion + 1) / state.selectedQuestions.length) * 100;
+            
+            return `
+                <div class="progress-text">
+                    <span>질문 ${state.currentQuestion + 1}</span>
+                    <span>${state.selectedQuestions.length}개 중</span>
                 </div>
-              </div>
-
-              <div className="border-t border-border pt-6 mt-6">
-                <h3 className="font-semibold mb-3 text-lg">미니게임 개별 점수</h3>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-4 rounded-lg bg-muted/50">
-                    <div className="text-2xl font-bold text-primary">{miniGameScores[0] || 0}</div>
-                    <div className="text-xs text-muted-foreground mt-1">반응속도</div>
-                  </div>
-                  <div className="text-center p-4 rounded-lg bg-muted/50">
-                    <div className="text-2xl font-bold text-primary">{miniGameScores[1] || 0}</div>
-                    <div className="text-xs text-muted-foreground mt-1">타이밍</div>
-                  </div>
-                  <div className="text-center p-4 rounded-lg bg-muted/50">
-                    <div className="text-2xl font-bold text-primary">{miniGameScores[2] || 0}</div>
-                    <div className="text-xs text-muted-foreground mt-1">리듬</div>
-                  </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${progress}%"></div>
                 </div>
-              </div>
-            </>
-          )}
-        </Card>
-      </motion.div>
+                <div class="card">
+                    <h2 class="question-title">${q.question}</h2>
+                    <div class="options">
+                        ${q.options.map((opt, idx) => `
+                            <button class="option-btn" onclick="handleAnswer('${opt.replace(/'/g, "\\'")}')">
+                                <span class="option-letter">${String.fromCharCode(65 + idx)}</span>
+                                <span>${opt}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
 
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.8 }}
-        className="flex flex-col sm:flex-row gap-4 justify-center"
-      >
-        <Button
-          variant="outline"
-          size="lg"
-          onClick={onRestart}
-          className="gap-2"
-        >
-          <RefreshCw className="w-4 h-4" />
-          {isSpecialResult ? "다시 진지하게 하기" : "다시 하기"}
-        </Button>
-        {!isSpecialResult && (
-          <Button
-            size="lg"
-            className="gap-2 bg-gradient-to-r from-primary to-accent hover:opacity-90"
-            onClick={() => {
-              // 공유 기능 구현 가능
-              alert("결과 공유 기능은 추후 추가됩니다!");
-            }}
-          >
-            <Share2 className="w-4 h-4" />
-            결과 공유하기
-          </Button>
-        )}
-      </motion.div>
-    </motion.div>
-  );
-};
+        function renderReactionGame() {
+            let className = 'game-waiting';
+            let text = '대기 중...';
+            
+            if (state.reactionStage === 'ready') {
+                className = 'game-ready';
+                text = '준비...';
+            } else if (state.reactionStage === 'go') {
+                className = 'game-go';
+                text = '지금 클릭!';
+            } else if (state.reactionStage === 'tooEarly') {
+                className = 'game-early';
+                text = '너무 빨라요! 😅';
+            } else if (state.reactionStage === 'result') {
+                className = 'game-result';
+                text = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">⚡</div>
+                        <div style="font-size: 2rem;">${state.reactionTime}ms</div>
+                        <div style="font-size: 1.25rem; margin-top: 0.5rem; color: #64748b;">
+                            ${state.reactionTime < 300 ? '엄청 빠르네요!' : state.reactionTime < 500 ? '좋아요!' : '괜찮아요!'}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="card">
+                    <h2 style="text-align: center; font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem;">반응속도 게임</h2>
+                    <p style="text-align: center; font-size: 0.875rem; color: #64748b; margin-bottom: 2rem;">
+                        초록색이 보이면 최대한 빨리 클릭하세요!
+                    </p>
+                    <div class="game-area ${className}" onclick="handleReactionClick()">
+                        ${text}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTimingGame() {
+            return `
+                <div class="card">
+                    <h2 style="text-align: center; font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem;">타이밍 게임</h2>
+                    <p style="text-align: center; font-size: 0.875rem; color: #64748b; margin-bottom: 2rem;">
+                        막대가 중앙에 올 때 스페이스바를 누르세요!
+                    </p>
+                    <div class="game-timing game-area" id="timing-game">
+                        <div class="target-zone"></div>
+                        <div class="target-line"></div>
+                        <div class="timing-bar" id="timing-bar"></div>
+                    </div>
+                    <div style="text-align: center; margin-top: 1.5rem;">
+                        <button class="btn" onclick="handleTimingStop()">멈추기 (스페이스바)</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderRhythmGame() {
+            const progress = (state.rhythmGameTime / 10000) * 100;
+            const remainingTime = Math.max(0, Math.ceil((10000 - state.rhythmGameTime) / 1000));
+            
+            return `
+                <div class="card">
+                    <div class="game-info">
+                        <div>
+                            <h2 style="font-size: 1.5rem; font-weight: bold;">리듬 게임</h2>
+                            <p style="font-size: 0.875rem; color: #64748b;">
+                                노트가 라인에 닿을 때 스페이스바를 누르세요!
+                            </p>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="game-score">${state.rhythmScore}</div>
+                            <div style="font-size: 0.875rem; color: #64748b;">점수</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+                        <div style="flex: 1; height: 0.5rem; background: #e2e8f0; border-radius: 1rem; overflow: hidden;">
+                            <div style="height: 100%; background: linear-gradient(90deg, #0891b2 0%, #67e8f9 100%); width: ${progress}%; transition: width 0.05s linear;"></div>
+                        </div>
+                        <div class="game-timer">${remainingTime}초</div>
+                    </div>
+                    ${state.rhythmCombo > 0 ? `<div class="game-combo">${state.rhythmCombo} Combo!</div>` : ''}
+                    <div class="game-rhythm game-area" id="rhythm-game">
+                        <div class="rhythm-target-zone"></div>
+                        <div class="rhythm-target-line"></div>
+                    </div>
+                    <p class="game-instruction">키보드의 스페이스바를 사용하세요</p>
+                </div>
+            `;
+        }
+
+        function renderResult() {
+            const result = getComprehensiveResult();
+            
+            return `
+                <div class="icon-circle" style="background: linear-gradient(135deg, #0891b2 0%, #67e8f9 100%);">✨</div>
+                <h1>결과가 나왔습니다!</h1>
+                <p class="subtitle">당신의 답변을 분석했습니다</p>
+                
+                <div class="card">
+                    <div class="result-type">
+                        <div class="result-emoji">${result.resultEmoji}</div>
+                        <div class="result-badge">당신의 유형</div>
+                        <h2 class="result-title">${result.resultType}</h2>
+                        <p class="result-description">${result.resultDescription}</p>
+                        <div class="result-score-box">
+                            <div class="result-score-label">종합 점수</div>
+                            <div class="result-score-value">${result.totalScore}</div>
+                            <div class="result-score-max">/ 100점</div>
+                        </div>
+                    </div>
+                    
+                    <div class="result-detail-box">
+                        <h3 class="result-detail-title">
+                            <span style="width: 0.25rem; height: 1rem; background: #0891b2; border-radius: 9999px;"></span>
+                            세부 분석
+                        </h3>
+                        <p class="result-detail-text">${result.resultDetail}</p>
+                    </div>
+                    
+                    <div class="score-breakdown">
+                        <h3 class="section-title">세부 점수</h3>
+                        <div class="score-item">
+                            <div class="score-item-label">
+                                <span style="font-size: 1.5rem;">⚡</span>
+                                <span>판단 속도</span>
+                            </div>
+                            <div class="score-item-value">${result.speedScore}/30</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-item-label">
+                                <span style="font-size: 1.5rem;">🎮</span>
+                                <span>미니게임 실력</span>
+                            </div>
+                            <div class="score-item-value">${result.gameScore}/50</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-item-label">
+                                <span style="font-size: 1.5rem;">🎯</span>
+                                <span>답변 일관성</span>
+                            </div>
+                            <div class="score-item-value">${result.consistencyScore}/20</div>
+                        </div>
+                    </div>
+                    
+                    <div class="score-breakdown">
+                        <h3 class="section-title">미니게임 개별 점수</h3>
+                        <div class="minigame-scores">
+                            <div class="minigame-score-item">
+                                <div class="minigame-score-value">${state.miniGameScores[0] || 0}</div>
+                                <div class="minigame-score-label">반응속도</div>
+                            </div>
+                            <div class="minigame-score-item">
+                                <div class="minigame-score-value">${state.miniGameScores[1] || 0}</div>
+                                <div class="minigame-score-label">타이밍</div>
+                            </div>
+                            <div class="minigame-score-item">
+                                <div class="minigame-score-value">${state.miniGameScores[2] || 0}</div>
+                                <div class="minigame-score-label">리듬</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="action-btn" onclick="handleRestart()">
+                        🔄 다시 하기
+                    </button>
+                    <button class="action-btn action-btn-primary" onclick="handleShare()">
+                        📤 결과 공유하기
+                    </button>
+                </div>
+            `;
+        }
+
+        // 이벤트 핸들러들
+        function handleStart(count) {
+            state.questionCount = count;
+            state.selectedQuestions = getRandomQuestions(count);
+            state.stage = 'questions';
+            state.currentQuestion = 0;
+            state.answers = [];
+            state.answerTimes = [];
+            state.miniGameScores = [];
+            state.questionStartTime = Date.now();
+            render();
+        }
+
+        function handleAnswer(answer) {
+            const currentTime = Date.now();
+            const timeTaken = (currentTime - state.questionStartTime) / 1000;
+            
+            state.answers.push(answer);
+            state.answerTimes.push(timeTaken);
+            
+            const miniGamePositions = getMiniGamePositions(state.questionCount);
+            
+            if (miniGamePositions.includes(state.currentQuestion)) {
+                const gameIndex = miniGamePositions.indexOf(state.currentQuestion);
+                const games = ['reaction', 'timing', 'rhythm'];
+                state.currentMiniGame = games[gameIndex % 3];
+                state.stage = 'minigame';
+            } else if (state.currentQuestion < state.selectedQuestions.length - 1) {
+                state.currentQuestion++;
+                state.questionStartTime = Date.now();
+            } else {
+                state.stage = 'result';
+            }
+            
+            render();
+        }
+
+        // 반응속도 게임
+        let reactionTimeout;
+        function startReactionGame() {
+            state.reactionStage = 'waiting';
+            render();
+            
+            reactionTimeout = setTimeout(() => {
+                state.reactionStage = 'ready';
+                render();
+                
+                setTimeout(() => {
+                    state.reactionStage = 'go';
+                    state.reactionStartTime = Date.now();
+                    render();
+                }, 1000);
+            }, 1000 + Math.random() * 3000);
+        }
+
+        function handleReactionClick() {
+            if (state.reactionStage === 'waiting' || state.reactionStage === 'ready') {
+                clearTimeout(reactionTimeout);
+                state.reactionStage = 'tooEarly';
+                render();
+                setTimeout(() => {
+                    completeMiniGame(0);
+                }, 2000);
+            } else if (state.reactionStage === 'go') {
+                const time = Date.now() - state.reactionStartTime;
+                state.reactionTime = time;
+                state.reactionStage = 'result';
+                render();
+                
+                const score = Math.max(0, 1000 - time);
+                setTimeout(() => {
+                    completeMiniGame(Math.round(score));
+                }, 2000);
+            }
+        }
+
+        // 타이밍 게임
+        let timingInterval;
+        function startTimingGame() {
+            state.timingPosition = 0;
+            state.timingDirection = 1;
+            state.timingStopped = false;
+            state.timingResult = null;
+            
+            timingInterval = setInterval(() => {
+                if (!state.timingStopped) {
+                    state.timingPosition += state.timingDirection * 2;
+                    
+                    if (state.timingPosition >= 100) {
+                        state.timingDirection = -1;
+                        state.timingPosition = 100;
+                    } else if (state.timingPosition <= 0) {
+                        state.timingDirection = 1;
+                        state.timingPosition = 0;
+                    }
+                    
+                    const bar = document.getElementById('timing-bar');
+                    if (bar) {
+                        bar.style.left = state.timingPosition + '%';
+                    }
+                }
+            }, 20);
+            
+            document.addEventListener('keydown', handleTimingKeyPress);
+        }
+
+        function handleTimingKeyPress(e) {
+            if (e.code === 'Space' && !state.timingStopped) {
+                e.preventDefault();
+                handleTimingStop();
+            }
+        }
+
+        function handleTimingStop() {
+            if (state.timingStopped) return;
+            
+            state.timingStopped = true;
+            clearInterval(timingInterval);
+            document.removeEventListener('keydown', handleTimingKeyPress);
+            
+            const accuracy = Math.abs(50 - state.timingPosition);
+            let points = 0;
+            let emoji = '';
+            let text = '';
+            
+            if (accuracy <= 5) {
+                points = 1000;
+                emoji = '🎯';
+                text = '완벽해요!';
+            } else if (accuracy <= 15) {
+                points = 500;
+                emoji = '👍';
+                text = '좋아요!';
+            } else if (accuracy <= 30) {
+                points = 200;
+                emoji = '👌';
+                text = '괜찮아요!';
+            } else {
+                points = 50;
+                emoji = '😅';
+                text = '아쉬워요!';
+            }
+            
+            const gameArea = document.getElementById('timing-game');
+            if (gameArea) {
+                gameArea.innerHTML = `
+                    <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(4px);">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">${emoji}</div>
+                        <div style="font-size: 2.5rem; font-weight: bold; color: #0891b2; margin-bottom: 0.5rem;">${points} 점</div>
+                        <div style="font-size: 1.25rem; color: #64748b;">${text}</div>
+                    </div>
+                `;
+            }
+            
+            setTimeout(() => {
+                completeMiniGame(points);
+            }, 2000);
+        }
+
+        // 리듬 게임
+        let rhythmNoteInterval;
+        let rhythmTimerInterval;
+        let rhythmMoveInterval;
+        let rhythmStartTime;
+        let noteIdCounter = 0;
+
+        function startRhythmGame() {
+            state.rhythmNotes = [];
+            state.rhythmScore = 0;
+            state.rhythmCombo = 0;
+            state.rhythmGameTime = 0;
+            state.rhythmFeedback = '';
+            rhythmStartTime = Date.now();
+            noteIdCounter = 0;
+            
+            // 노트 생성
+            rhythmNoteInterval = setInterval(() => {
+                state.rhythmNotes.push({
+                    id: noteIdCounter++,
+                    position: 0,
+                    hit: false
+                });
+                updateRhythmNotes();
+            }, 800);
+            
+            // 게임 타이머
+            rhythmTimerInterval = setInterval(() => {
+                state.rhythmGameTime = Date.now() - rhythmStartTime;
+                render();
+                
+                if (state.rhythmGameTime >= 10000) {
+                    clearInterval(rhythmNoteInterval);
+                    clearInterval(rhythmTimerInterval);
+                    clearInterval(rhythmMoveInterval);
+                    document.removeEventListener('keydown', handleRhythmKeyPress);
+                    setTimeout(() => {
+                        completeMiniGame(state.rhythmScore);
+                    }, 1000);
+                }
+            }, 50);
+            
+            // 노트 이동
+            rhythmMoveInterval = setInterval(() => {
+                state.rhythmNotes = state.rhythmNotes
+                    .map(note => ({ ...note, position: note.position + 2 }))
+                    .filter(note => note.position < 100);
+                updateRhythmNotes();
+            }, 20);
+            
+            document.addEventListener('keydown', handleRhythmKeyPress);
+        }
+
+        function handleRhythmKeyPress(e) {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                checkRhythmHit();
+            }
+        }
+
+        function checkRhythmHit() {
+            const hitNote = state.rhythmNotes.find(
+                note => !note.hit && note.position >= 80 && note.position <= 100
+            );
+            
+            if (hitNote) {
+                const accuracy = Math.abs(hitNote.position - 90);
+                let points = 0;
+                let feedbackText = '';
+                let feedbackClass = '';
+                
+                if (accuracy <= 3) {
+                    points = 100;
+                    feedbackText = 'Perfect!';
+                    feedbackClass = 'feedback-perfect';
+                } else if (accuracy <= 6) {
+                    points = 50;
+                    feedbackText = 'Good!';
+                    feedbackClass = 'feedback-good';
+                } else {
+                    points = 20;
+                    feedbackText = 'OK';
+                    feedbackClass = 'feedback-ok';
+                }
+                
+                state.rhythmScore += points + state.rhythmCombo * 10;
+                state.rhythmCombo += 1;
+                hitNote.hit = true;
+                
+                showRhythmFeedback(feedbackText, feedbackClass);
+                render();
+            } else {
+                state.rhythmCombo = 0;
+                showRhythmFeedback('Miss!', 'feedback-miss');
+                render();
+            }
+        }
+
+        function showRhythmFeedback(text, className) {
+            const gameArea = document.getElementById('rhythm-game');
+            if (gameArea) {
+                const feedback = document.createElement('div');
+                feedback.className = 'feedback-overlay';
+                feedback.innerHTML = `<span class="feedback-text ${className}">${text}</span>`;
+                gameArea.appendChild(feedback);
+                
+                setTimeout(() => {
+                    feedback.remove();
+                }, 300);
+            }
+        }
+
+        function updateRhythmNotes() {
+            const gameArea = document.getElementById('rhythm-game');
+            if (!gameArea) return;
+            
+            // 기존 노트들 제거 (타겟 라인과 존은 유지)
+            const existingNotes = gameArea.querySelectorAll('.rhythm-note');
+            existingNotes.forEach(note => note.remove());
+            
+            // 노트 렌더링
+            state.rhythmNotes.forEach(note => {
+                const noteEl = document.createElement('div');
+                noteEl.className = 'rhythm-note' + (note.hit ? ' hit' : '');
+                noteEl.style.top = note.position + '%';
+                gameArea.appendChild(noteEl);
+                
+                if (note.hit) {
+                    setTimeout(() => noteEl.remove(), 200);
+                }
+            });
+        }
+
+        function completeMiniGame(score) {
+            state.miniGameScores.push(score);
+            state.currentQuestion++;
+            state.questionStartTime = Date.now();
+            
+            if (state.currentQuestion < state.selectedQuestions.length) {
+                state.stage = 'questions';
+            } else {
+                state.stage = 'result';
+            }
+            
+            render();
+        }
+
+        function handleRestart() {
+            state.stage = 'welcome';
+            state.currentQuestion = 0;
+            state.answers = [];
+            state.answerTimes = [];
+            state.miniGameScores = [];
+            state.questionStartTime = Date.now();
+            render();
+        }
+
+        function handleShare() {
+            alert('결과 공유 기능은 추후 추가됩니다!');
+        }
+
+        // 결과 분석
+        function getComprehensiveResult() {
+            const averageTime = state.answerTimes.reduce((sum, time) => sum + time, 0) / state.answerTimes.length;
+            const totalMiniGameScore = state.miniGameScores.reduce((sum, score) => sum + score, 0);
+            const avgMiniGameScore = totalMiniGameScore / state.miniGameScores.length;
+            
+            const speedScore = Math.min(30, Math.max(0, 30 - averageTime * 3));
+            const gameScore = Math.min(50, avgMiniGameScore / 20);
+            
+            const answerCounts = state.answers.reduce((acc, answer) => {
+                acc[answer] = (acc[answer] || 0) + 1;
+                return acc;
+            }, {});
+            const variance = Object.values(answerCounts).reduce((sum, count) => 
+                sum + Math.pow(count - state.answers.length / Object.keys(answerCounts).length, 2), 0);
+            const consistencyScore = Math.min(20, variance * 2);
+            
+            const totalScore = Math.round(speedScore + gameScore + consistencyScore);
+            
+            let resultType, resultDescription, resultDetail, resultEmoji;
+            
+            if (totalScore >= 80) {
+                resultType = "완벽주의 달성자";
+                resultDescription = "빠른 판단력과 뛰어난 집중력을 동시에 보유한 유형입니다.";
+                resultDetail = "당신은 상황을 빠르게 파악하고 즉각적으로 최선의 선택을 내립니다. 미니게임에서도 높은 집중력을 보여주었고, 답변 패턴도 일관성이 있습니다. 이런 당신은 중요한 결정을 내려야 하는 순간에 특히 빛을 발하며, 주변 사람들이 믿고 따르는 리더형입니다. 다만 때로는 너무 완벽을 추구하다 보니 작은 실수에도 스트레스를 받을 수 있으니, 가끔은 여유를 가지는 것도 필요합니다.";
+                resultEmoji = "🏆";
+            } else if (totalScore >= 65) {
+                resultType = "밸런스 마스터";
+                resultDescription = "신중함과 빠른 판단력의 균형이 잘 잡힌 유형입니다.";
+                resultDetail = "당신은 상황에 따라 빠르게 결정하기도 하고, 필요할 때는 충분히 고민하는 유연성을 가지고 있습니다. 미니게임 점수와 답변 속도 모두 안정적이며, 극단적이지 않은 중도적 선택을 선호합니다. 이런 균형감각은 팀 프로젝트나 그룹 활동에서 조율자 역할을 하기에 적합합니다. 다만 때로는 우유부단해 보일 수 있으니, 중요한 순간에는 자신의 의견을 명확히 하는 연습이 필요합니다.";
+                resultEmoji = "⚖️";
+            } else if (totalScore >= 50) {
+                resultType = "신중한 사색가";
+                resultDescription = "충분한 고민 끝에 결정을 내리는 사려 깊은 유형입니다.";
+                resultDetail = "당신은 답변에 시간을 충분히 들이며, 각 선택지를 꼼꼼히 검토하는 스타일입니다. 급하게 판단하기보다는 모든 가능성을 생각해본 후 결정을 내립니다. 이런 신중함은 중요한 결정에서 실수를 줄여주지만, 일상적인 선택에서는 너무 많은 에너지를 소비할 수 있습니다. 때로는 직관을 믿고 빠르게 결정하는 연습도 필요합니다. 당신의 깊이 있는 사고방식은 문제 해결 능력의 핵심입니다.";
+                resultEmoji = "🤔";
+            } else if (totalScore >= 35) {
+                resultType = "자유로운 탐험가";
+                resultDescription = "결과보다는 과정을 즐기는 여유로운 유형입니다.";
+                resultDetail = "당신은 정해진 틀에 얽매이지 않고 자유롭게 선택하는 스타일입니다. 미니게임에서도 점수에 연연하기보다는 재미를 추구하며, 답변 패턴도 예측하기 어려운 독특함이 있습니다. 이런 자유로움은 창의적인 아이디어를 내는 데 도움이 되지만, 때로는 일관성 부족으로 보일 수 있습니다. 중요한 상황에서는 조금 더 집중력을 발휘한다면, 당신의 창의성이 더 빛날 것입니다.";
+                resultEmoji = "🎨";
+            } else {
+                resultType = "마이웨이 도전자";
+                resultDescription = "자신만의 독특한 방식으로 문제에 접근하는 유형입니다.";
+                resultDetail = "당신은 남들과 다른 시각으로 상황을 바라보며, 전혀 예상치 못한 선택을 하는 경우가 많습니다. 답변 시간이 불규칙하고 패턴도 일정하지 않지만, 그것이 오히려 당신만의 독창성입니다. 다만 이런 스타일은 때로 주변 사람들이 이해하기 어려울 수 있으니, 중요한 결정에서는 다른 사람들과 소통하며 생각을 공유하는 것이 좋습니다. 당신의 독특한 관점은 새로운 해결책을 찾는 데 큰 강점이 될 수 있습니다.";
+                resultEmoji = "🎯";
+            }
+            
+            return {
+                totalScore,
+                speedScore: Math.round(speedScore),
+                gameScore: Math.round(gameScore),
+                consistencyScore: Math.round(consistencyScore),
+                resultType,
+                resultDescription,
+                resultDetail,
+                resultEmoji
+            };
+        }
+
+        // 초기 렌더링
+        render();
+    </script>
+</body>
+</html>
