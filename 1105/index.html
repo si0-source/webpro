@@ -4,1367 +4,793 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>질문 테스트 - 당신의 이야기를 들려주세요</title>
-    <meta name="description" content="몇 가지 질문에 답하고 맞춤형 결과를 받아보세요">
+    <meta name="description" content="몇 가지 질문에 답하고 맞춤형 결과를 받아보세요" />
+    
+    <!-- React and ReactDOM from CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel Standalone for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Framer Motion -->
+    <script src="https://unpkg.com/framer-motion@11/dist/framer-motion.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --background: 195 20% 97%;
+            --foreground: 195 70% 12%;
+            --card: 0 0% 100%;
+            --card-foreground: 195 70% 12%;
+            --primary: 178 64% 48%;
+            --primary-foreground: 0 0% 100%;
+            --secondary: 195 15% 88%;
+            --secondary-foreground: 195 70% 12%;
+            --muted: 195 15% 92%;
+            --muted-foreground: 195 20% 45%;
+            --accent: 178 64% 48%;
+            --accent-foreground: 0 0% 100%;
+            --border: 195 15% 88%;
+            --radius: 0.75rem;
+            --gradient-primary: linear-gradient(135deg, hsl(178 64% 48%) 0%, hsl(195 85% 58%) 100%);
+            --shadow-card: 0 8px 30px -4px hsl(195 30% 60% / 0.2);
         }
-
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
-            min-height: 100vh;
-            padding: 3rem 1rem;
-            color: #0c4a6e;
-        }
-
-        .container {
-            max-width: 48rem;
-            margin: 0 auto;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 1rem;
-            padding: 2rem;
-            box-shadow: 0 8px 30px -4px rgba(8, 145, 178, 0.2);
-            animation: slideUp 0.3s ease-out;
-        }
-
-        .icon-circle {
-            width: 5rem;
-            height: 5rem;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #0891b2 0%, #67e8f9 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            font-size: 2.5rem;
-        }
-
-        h1 {
-            font-size: 3rem;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, #0891b2 0%, #67e8f9 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .subtitle {
-            font-size: 1.25rem;
-            text-align: center;
-            color: #64748b;
-            margin-bottom: 3rem;
-            line-height: 1.8;
-        }
-
-        .btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        @media (min-width: 640px) {
-            .btn-group {
-                flex-direction: row;
-                justify-content: center;
-            }
-        }
-
-        .btn {
-            padding: 1.5rem 2rem;
-            border: 2px solid #cbd5e1;
-            border-radius: 0.75rem;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1rem;
-            font-weight: 600;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn:hover {
-            transform: scale(1.05);
-            border-color: #0891b2;
-            background: rgba(8, 145, 178, 0.05);
-        }
-
-        .btn-number {
-            font-size: 2rem;
-            color: #0891b2;
-        }
-
-        .btn-text {
-            font-size: 0.875rem;
-            color: #64748b;
-        }
-
-        .btn-time {
-            font-size: 0.75rem;
-            color: #94a3b8;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 0.5rem;
-            background: #e2e8f0;
-            border-radius: 1rem;
-            margin-bottom: 2rem;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #0891b2 0%, #67e8f9 100%);
-            transition: width 0.5s ease;
-        }
-
-        .progress-text {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.875rem;
-            color: #64748b;
-            margin-bottom: 0.5rem;
-        }
-
-        .question-title {
-            font-size: 1.875rem;
-            font-weight: bold;
-            margin-bottom: 2rem;
-            color: #0c4a6e;
-        }
-
-        .options {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .option-btn {
-            width: 100%;
-            padding: 1rem 1.5rem;
-            border: 2px solid #cbd5e1;
-            border-radius: 0.75rem;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1.125rem;
-            text-align: left;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .option-btn:hover {
-            background: rgba(8, 145, 178, 0.1);
-            border-color: #67e8f9;
-        }
-
-        .option-letter {
-            width: 2rem;
-            height: 2rem;
-            border-radius: 50%;
-            background: rgba(8, 145, 178, 0.1);
-            color: #0891b2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-
-        .game-area {
-            height: 24rem;
-            border-radius: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin: 2rem 0;
-        }
-
-        .game-waiting { background: rgba(148, 163, 184, 0.3); color: #64748b; }
-        .game-ready { background: rgba(251, 191, 36, 0.2); color: #d97706; }
-        .game-go { background: #10b981; color: white; }
-        .game-early { background: rgba(239, 68, 68, 0.2); color: #dc2626; }
-        .game-result { background: rgba(148, 163, 184, 0.3); color: #0891b2; }
-
-        .game-timing {
-            position: relative;
-            background: rgba(148, 163, 184, 0.3);
-            overflow: hidden;
-        }
-
-        .target-zone {
-            position: absolute;
-            width: 5rem;
-            height: 100%;
-            background: rgba(8, 145, 178, 0.1);
-            border-left: 2px solid rgba(8, 145, 178, 0.3);
-            border-right: 2px solid rgba(8, 145, 178, 0.3);
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .target-line {
-            position: absolute;
-            width: 0.25rem;
-            height: 100%;
-            background: #0891b2;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .timing-bar {
-            position: absolute;
-            width: 1rem;
-            height: 100%;
-            background: linear-gradient(90deg, #67e8f9 0%, #0891b2 100%);
-            box-shadow: 0 4px 20px rgba(8, 145, 178, 0.5);
-        }
-
-        .game-rhythm {
-            position: relative;
-            background: rgba(148, 163, 184, 0.3);
-            overflow: hidden;
-        }
-
-        .rhythm-target-line {
-            position: absolute;
-            width: 100%;
-            height: 0.25rem;
-            background: rgba(8, 145, 178, 0.5);
-            top: 90%;
-            animation: pulse 1s infinite;
-        }
-
-        .rhythm-target-zone {
-            position: absolute;
-            width: 100%;
-            height: 5rem;
-            background: rgba(8, 145, 178, 0.1);
-            border-top: 2px solid rgba(8, 145, 178, 0.3);
-            border-bottom: 2px solid rgba(8, 145, 178, 0.3);
-            top: calc(90% - 2.5rem);
-        }
-
-        .rhythm-note {
-            position: absolute;
-            width: 4rem;
-            height: 4rem;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #0891b2 0%, rgba(8, 145, 178, 0.7) 100%);
-            box-shadow: 0 4px 20px rgba(8, 145, 178, 0.5);
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .rhythm-note.hit {
-            background: #10b981;
-        }
-
-        .game-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .game-score {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #0891b2;
-        }
-
-        .game-timer {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-
-        .game-combo {
-            text-align: center;
-            font-size: 1.25rem;
-            font-weight: bold;
-            color: #0891b2;
-            margin-bottom: 1rem;
-        }
-
-        .result-type {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .result-emoji {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-
-        .result-badge {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            border-radius: 9999px;
-            background: rgba(8, 145, 178, 0.1);
-            color: #0891b2;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .result-title {
-            font-size: 2rem;
-            font-weight: bold;
-            background: linear-gradient(135deg, #0891b2 0%, #67e8f9 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 1rem;
-        }
-
-        .result-description {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #0c4a6e;
-            margin-bottom: 1.5rem;
-        }
-
-        .result-score-box {
-            text-align: center;
-            padding: 1.5rem;
-            border-radius: 0.75rem;
-            background: linear-gradient(135deg, rgba(8, 145, 178, 0.1) 0%, rgba(103, 232, 249, 0.1) 100%);
-            border: 2px solid rgba(8, 145, 178, 0.2);
-            margin-bottom: 1.5rem;
-        }
-
-        .result-score-label {
-            font-size: 0.875rem;
-            color: #64748b;
-            margin-bottom: 0.5rem;
-        }
-
-        .result-score-value {
-            font-size: 3rem;
-            font-weight: bold;
-            background: linear-gradient(135deg, #0891b2 0%, #67e8f9 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .result-score-max {
-            font-size: 0.75rem;
-            color: #64748b;
-            margin-top: 0.25rem;
-        }
-
-        .result-detail-box {
-            margin-top: 1.5rem;
-            padding: 1.25rem;
-            border-radius: 0.75rem;
-            background: rgba(148, 163, 184, 0.3);
-            border: 1px solid rgba(203, 213, 225, 0.5);
-        }
-
-        .result-detail-title {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #0891b2;
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .result-detail-text {
-            font-size: 0.875rem;
-            line-height: 1.7;
-            color: #64748b;
-            text-align: left;
-        }
-
-        .score-breakdown {
-            border-top: 1px solid #cbd5e1;
-            padding-top: 1.5rem;
-            margin-top: 1.5rem;
-        }
-
-        .score-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            background: rgba(148, 163, 184, 0.5);
-            margin-bottom: 0.75rem;
-        }
-
-        .score-item-label {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        .score-item-value {
-            font-size: 1.25rem;
-            font-weight: bold;
-            color: #0891b2;
-        }
-
-        .minigame-scores {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .minigame-score-item {
-            text-align: center;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            background: rgba(148, 163, 184, 0.5);
-        }
-
-        .minigame-score-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #0891b2;
-        }
-
-        .minigame-score-label {
-            font-size: 0.75rem;
-            color: #64748b;
-            margin-top: 0.25rem;
-        }
-
-        .action-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-
-        @media (min-width: 640px) {
-            .action-buttons {
-                flex-direction: row;
-                justify-content: center;
-            }
-        }
-
-        .action-btn {
-            padding: 0.75rem 2rem;
-            border: 2px solid #cbd5e1;
-            border-radius: 0.75rem;
-            background: white;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .action-btn:hover {
-            background: #f8fafc;
-        }
-
-        .action-btn-primary {
-            background: linear-gradient(90deg, #0891b2 0%, #67e8f9 100%);
-            color: white;
-            border: none;
-        }
-
-        .action-btn-primary:hover {
-            opacity: 0.9;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .game-instruction {
-            text-align: center;
-            font-size: 0.875rem;
-            color: #64748b;
-            margin-top: 1rem;
-        }
-
-        .feedback-overlay {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none;
-            animation: feedbackPulse 0.3s ease-out;
-        }
-
-        @keyframes feedbackPulse {
-            0% { transform: scale(0.5); opacity: 0; }
-            50% { transform: scale(1.5); opacity: 1; }
-            100% { transform: scale(1.5); opacity: 1; }
-        }
-
-        .feedback-text {
-            font-size: 2.5rem;
-            font-weight: bold;
-        }
-
-        .feedback-perfect { color: #fbbf24; }
-        .feedback-good { color: #10b981; }
-        .feedback-ok { color: #3b82f6; }
-        .feedback-miss { color: #ef4444; }
-
-        .section-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: hsl(var(--background));
+            color: hsl(var(--foreground));
         }
     </style>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'hsl(var(--background))',
+                        foreground: 'hsl(var(--foreground))',
+                        card: 'hsl(var(--card))',
+                        'card-foreground': 'hsl(var(--card-foreground))',
+                        primary: 'hsl(var(--primary))',
+                        'primary-foreground': 'hsl(var(--primary-foreground))',
+                        secondary: 'hsl(var(--secondary))',
+                        'secondary-foreground': 'hsl(var(--secondary-foreground))',
+                        muted: 'hsl(var(--muted))',
+                        'muted-foreground': 'hsl(var(--muted-foreground))',
+                        accent: 'hsl(var(--accent))',
+                        'accent-foreground': 'hsl(var(--accent-foreground))',
+                        border: 'hsl(var(--border))',
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 <body>
-    <div id="app" class="container"></div>
+    <div id="root"></div>
 
-    <script>
-        // 질문 풀
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { motion, AnimatePresence } = Motion;
+
+        // Question Pool (40 questions)
         const questionPool = [
-            { question: "친구가 내 물건을 허락 없이 썼어요. 어떻게 하시나요?", options: ["다음부턴 물어보고 쓰라고 말한다", "괜찮다고 하지만 속으론 불편하다", "화가 나서 따지듯이 말한다", "별로 신경 안 쓴다"] },
-            { question: "시험 일주일 전인데 재밌는 드라마가 있어요.", options: ["시험 끝나고 몰아본다", "하루 1화씩만 본다", "공부하다가 쉴 때 본다", "일단 끝까지 본다"] },
-            { question: "단체 채팅방에서 나만 답장을 안 했어요.", options: ["늦었지만 바로 답장한다", "나중에 개인적으로 말한다", "다음 대화 때 참여한다", "안 본 척한다"] },
-            { question: "친구가 약속에 30분 늦었어요.", options: ["왜 늦었는지 물어본다", "다음엔 시간 지키자고 말한다", "별말 없이 기다렸다고만 한다", "나도 다음엔 늦게 나온다"] },
-            { question: "조별과제 회의 시간을 정해야 해요.", options: ["내가 시간표 공유하며 제안한다", "다른 사람들이 말할 때까지 기다린다", "투표로 정하자고 제안한다", "다수가 되는 시간에 맞춘다"] },
-            { question: "식당에서 주문한 음식이 잘못 나왔어요.", options: ["바로 말씀드려서 바꾼다", "괜찮은 메뉴면 그냥 먹는다", "먹으면서 다음엔 확인하자 생각한다", "불편하지만 그냥 먹는다"] },
-            { question: "친구가 고민상담을 해요.", options: ["해결책을 제시한다", "공감하며 들어준다", "비슷한 내 경험을 말해준다", "긍정적으로 격려한다"] },
-            { question: "갑자기 모르는 번호에서 전화가 와요.", options: ["받아서 누군지 확인한다", "검색해보고 받을지 결정한다", "일단 안 받고 문자 오면 본다", "모르는 번호는 안 받는다"] },
-            { question: "과제 제출일이 내일인데 거의 안 했어요.", options: ["밤새서라도 끝낸다", "할 수 있는 만큼만 한다", "교수님께 연장 요청한다", "친구에게 도움을 청한다"] },
-            { question: "친구들이 내가 모르는 얘기를 해요.", options: ["무슨 얘기인지 물어본다", "웃으면서 듣고 있는다", "다른 주제로 바꾼다", "핸드폰을 본다"] },
-            { question: "편의점에서 계산할 때 줄이 길어요.", options: ["기다리면서 살 거 더 둘러본다", "그냥 참고 기다린다", "다음에 사러 오려고 나간다", "다른 편의점을 찾아본다"] },
-            { question: "SNS에서 내가 올린 게시물에 반응이 없어요.", options: ["별로 신경 안 쓴다", "조금 아쉽지만 괜찮다", "다음엔 더 잘 올려야겠다고 생각한다", "지우고 다시 올린다"] },
-            { question: "친구가 비밀을 말해주지 말라고 했는데 다른 친구가 물어봐요.", options: ["말 못 한다고 정확히 말한다", "대충 얼버무린다", "다른 주제로 돌린다", "살짝만 힌트를 준다"] },
-            { question: "카페에서 공부하는데 옆자리가 시끄러워요.", options: ["조용히 해달라고 정중히 말한다", "자리를 옮긴다", "이어폰을 낀다", "참고 집중한다"] },
-            { question: "친구가 내 의견에 동의하지 않아요.", options: ["왜 그렇게 생각하는지 물어본다", "내 생각을 더 설명한다", "동의는 안 하지만 인정한다", "더 이상 얘기하지 않는다"] },
-            { question: "새 학기에 모르는 사람들과 같은 조가 됐어요.", options: ["먼저 인사하고 말 건넨다", "누가 말 걸어주길 기다린다", "웃으면서 자연스럽게 대화 참여한다", "필요할 때만 얘기한다"] },
-            { question: "친구가 내 SNS 게시물에 이상한 댓글을 달았어요.", options: ["직접 물어본다", "장난으로 받아들인다", "무시한다", "댓글을 지운다"] },
-            { question: "수업 중에 궁금한 게 생겼어요.", options: ["바로 손 들고 질문한다", "수업 끝나고 질문한다", "친구에게 물어본다", "나중에 혼자 찾아본다"] },
-            { question: "약속 장소를 정해야 하는데 의견이 안 모여요.", options: ["중간 지점을 제안한다", "투표를 제안한다", "가장 많은 사람이 편한 곳으로 한다", "내가 양보한다"] },
-            { question: "친구가 내 물건을 빌려달라고 해요.", options: ["조심히 쓰라고 하고 빌려준다", "언제 돌려줄지 확인하고 빌려준다", "미안하지만 안 빌려준다고 한다", "다음에 빌려주겠다고 한다"] },
-            { question: "밤늦게까지 게임하다가 다음날 아침에 일어나기 힘들어요.", options: ["알람 여러 개 맞춰놓는다", "게임 시간을 줄인다", "그냥 피곤하지만 일어난다", "좀 더 자고 늦게 일어난다"] },
-            { question: "친구가 내 약점을 농담으로 말했어요.", options: ["웃으면서 받아치지만 속상하다", "진지하게 불편하다고 말한다", "같이 웃는다", "말없이 표정이 굳는다"] },
-            { question: "길에서 지갑을 주웠어요.", options: ["바로 경찰서에 가져간다", "주변 사람에게 물어본다", "주인 연락처 찾아서 연락한다", "근처 가게에 맡긴다"] },
-            { question: "그룹 과제에서 내 의견이 채택되지 않았어요.", options: ["다른 의견도 좋다고 인정한다", "왜 내 의견이 안 좋은지 물어본다", "조용히 아쉬워한다", "다음엔 더 설득력있게 말해야겠다고 생각한다"] },
-            { question: "배달 음식이 늦게 와요.", options: ["전화해서 확인한다", "조금 더 기다린다", "다른 거 시켜먹는다", "참고 기다리면서 배고픔을 참는다"] },
-            { question: "친구가 내 비밀을 다른 사람에게 말했어요.", options: ["화내며 따진다", "실망했다고 말한다", "거리를 둔다", "그냥 넘어간다"] },
-            { question: "시험 전날 친구가 놀자고 해요.", options: ["미안하지만 거절한다", "잠깐만 보자고 한다", "시험 끝나고 보자고 한다", "그냥 만난다"] },
-            { question: "인터넷에서 내 의견과 다른 댓글을 봤어요.", options: ["내 생각을 댓글로 남긴다", "그냥 넘어간다", "왜 그렇게 생각하는지 궁금하다", "짜증나지만 무시한다"] },
-            { question: "버스에서 할머니가 서 계세요.", options: ["바로 자리를 양보한다", "주변을 보고 다른 사람도 안 일어나면 일어난다", "피곤해서 잠깐 더 앉아있다가 내리기 전에 양보한다", "자는 척한다"] },
-            { question: "친구 생일인데 선물을 준비 못했어요.", options: ["급하게라도 사러 간다", "솔직하게 말하고 다음에 사준다고 한다", "밥을 사준다", "축하 메시지만 보낸다"] },
-            { question: "수업 시간에 선생님이 틀린 말씀을 하셨어요.", options: ["손들고 정중히 질문한다", "수업 끝나고 말씀드린다", "친구들에게만 말한다", "그냥 넘어간다"] },
-            { question: "단체 채팅에서 나에 대한 안 좋은 얘기가 올라왔어요.", options: ["바로 해명한다", "개인적으로 따로 얘기한다", "무시한다", "채팅방을 나간다"] },
-            { question: "친구가 돈을 빌려달라고 해요.", options: ["언제 갚을지 확인하고 빌려준다", "빌려줄 수 없다고 정중히 거절한다", "다른 방법을 제안한다", "적은 금액만 빌려준다"] },
-            { question: "좋아하는 연예인이 논란에 휩싸였어요.", options: ["사실 확인될 때까지 기다린다", "팬이지만 잘못은 잘못이라고 생각한다", "무조건 편을 든다", "관심을 끊는다"] },
-            { question: "학교에서 내 물건이 없어졌어요.", options: ["선생님께 말씀드린다", "친구들에게 물어본다", "혼자 찾아본다", "그냥 포기한다"] },
-            { question: "친구가 시험 답을 보여달라고 해요.", options: ["단호하게 거절한다", "나중에 같이 공부하자고 한다", "난처해하며 거절한다", "살짝 보여준다"] },
-            { question: "좋아하는 사람이 내 친구를 좋아하는 것 같아요.", options: ["친구에게 솔직하게 말한다", "혼자 속상해한다", "포기한다", "더 열심히 어필한다"] },
-            { question: "단체 사진에서 내가 이상하게 나왔어요.", options: ["다시 찍자고 한다", "그냥 올린다", "내가 나온 부분을 가려달라고 한다", "내가 안 나온 사진만 올려달라고 한다"] },
-            { question: "친구가 내 고민을 진지하게 안 들어줘요.", options: ["진지하게 들어달라고 말한다", "다른 친구에게 말한다", "혼자 해결한다", "서운하지만 그냥 넘어간다"] },
-            { question: "길에서 넘어진 사람을 봤어요.", options: ["바로 달려가서 일으켜준다", "괜찮은지 물어본다", "주변을 보다가 아무도 안 도와주면 돕는다", "지나간다"] }
+            { question: "아침에 일어났을 때 가장 먼저 하는 일은?", options: ["SNS 확인", "스트레칭", "물 마시기", "침대에서 5분 더"] },
+            { question: "주말 아침, 이상적인 시간은?", options: ["7시 이전", "8-9시", "10-11시", "정오 이후"] },
+            { question: "여행 계획을 세울 때 당신은?", options: ["세세한 일정표 작성", "큰 틀만 정함", "즉흥적으로", "다른 사람 따라감"] },
+            { question: "친구가 고민 상담을 한다면?", options: ["해결책 제시", "공감하며 들어줌", "경험담 공유", "같이 고민"] },
+            { question: "새로운 취미를 시작한다면?", options: ["운동", "예술/공예", "요리", "독서"] },
+            { question: "스트레스 해소 방법은?", options: ["운동", "음악 감상", "잠", "쇼핑"] },
+            { question: "선호하는 영화 장르는?", options: ["액션", "로맨스", "스릴러", "코미디"] },
+            { question: "카페에서 주로 주문하는 것은?", options: ["아메리카노", "라떼", "차", "디저트 중심"] },
+            { question: "회의 중 당신의 역할은?", options: ["리더", "아이디어 제공", "경청", "기록"] },
+            { question: "갑자기 생긴 자유 시간, 무엇을 할까?", options: ["계획했던 일", "휴식", "친구 만남", "새로운 것 시도"] },
+            { question: "선물을 고를 때 중요한 것은?", options: ["실용성", "디자인", "가격", "의미"] },
+            { question: "좋아하는 계절은?", options: ["봄", "여름", "가을", "겨울"] },
+            { question: "SNS 사용 패턴은?", options: ["자주 올림", "보기만 함", "가끔 올림", "거의 안함"] },
+            { question: "음악을 들을 때 선호하는 방식은?", options: ["플레이리스트", "랜덤", "앨범 전체", "라디오"] },
+            { question: "책을 읽을 때 선호하는 장르는?", options: ["소설", "자기계발", "에세이", "전문서적"] },
+            { question: "저녁 식사 메뉴 결정은?", options: ["미리 계획", "그때그때", "맛집 검색", "배달앱 탐색"] },
+            { question: "새로운 사람을 만날 때?", options: ["적극적으로 다가감", "상대 반응 보고", "소극적", "피함"] },
+            { question: "일을 처리하는 방식은?", options: ["마감 전 미리", "마감 직전", "조금씩 분산", "몰아서"] },
+            { question: "선호하는 운동 방식은?", options: ["혼자 조깅", "팀 스포츠", "헬스", "운동 안함"] },
+            { question: "패션 스타일은?", options: ["미니멀", "트렌디", "편안함 우선", "개성 있게"] },
+            { question: "논쟁 상황에서 당신은?", options: ["논리적 설득", "감정 호소", "회피", "중재"] },
+            { question: "실패했을 때 반응은?", options: ["원인 분석", "감정 토로", "빨리 잊음", "다시 도전"] },
+            { question: "돈 관리 방식은?", options: ["꼼꼼히 기록", "대략 파악", "쓰고 싶을 때", "저축 우선"] },
+            { question: "집에서 보내는 시간?", options: ["생산적 활동", "휴식/수면", "취미", "청소/정리"] },
+            { question: "좋아하는 색상은?", options: ["파랑", "빨강", "초록", "노랑"] },
+            { question: "아침 식사 스타일은?", options: ["든든하게", "간단하게", "커피만", "안먹음"] },
+            { question: "전화와 문자 중 선호는?", options: ["전화", "문자", "상황따라", "둘 다 싫음"] },
+            { question: "집 인테리어 스타일은?", options: ["모던", "빈티지", "미니멀", "아늑함"] },
+            { question: "파티에서 당신은?", options: ["분위기 주도", "친한 사람과", "조용히 관찰", "일찍 퇴장"] },
+            { question: "학습 방식은?", options: ["이론 먼저", "실습 중심", "토론", "독학"] },
+            { question: "날씨가 좋은 주말엔?", options: ["야외 활동", "집에서 휴식", "카페", "문화생활"] },
+            { question: "중요한 결정을 할 때?", options: ["분석 후 결정", "직감", "조언 구함", "미룸"] },
+            { question: "선호하는 여행 스타일은?", options: ["계획형 관광", "자유여행", "휴양", "모험"] },
+            { question: "팀 프로젝트에서 역할은?", options: ["기획", "실행", "조율", "마무리"] },
+            { question: "갈등 해결 방식은?", options: ["대화", "시간이 해결", "제3자 개입", "회피"] },
+            { question: "좋아하는 간식은?", options: ["과자", "과일", "견과류", "안먹음"] },
+            { question: "정보 습득 방법은?", options: ["책", "영상", "팟캐스트", "경험"] },
+            { question: "잠들기 전 루틴은?", options: ["독서", "영상 시청", "명상", "스마트폰"] },
+            { question: "목표 설정 방식은?", options: ["구체적 계획", "큰 그림", "단기 목표", "목표 없음"] },
+            { question: "에너지 충전 방법은?", options: ["사람들과", "혼자", "활동적으로", "휴식"] }
         ];
 
-        // 전역 상태 및 타임아웃 ID
-        let reactionTimeout = null;
-        let timingAnimationId = null;
-        let rhythmGameInterval = null;
-        let rhythmNoteGenerator = null;
-
-        let state = {
-            stage: 'welcome',
-            questionCount: 7,
-            selectedQuestions: [],
-            currentQuestion: 0,
-            answers: [],
-            answerTimes: [],
-            questionStartTime: 0,
-            miniGameScores: [],
-            currentMiniGame: 'reaction',
-            // 게임별 상태
-            reactionStage: 'waiting',
-            reactionStartTime: 0,
-            reactionTime: 0,
-            timingPosition: 0,
-            timingDirection: 1,
-            timingStopped: false,
-            timingResult: null,
-            rhythmNotes: [],
-            rhythmScore: 0,
-            rhythmCombo: 0,
-            rhythmGameTime: 0,
-            rhythmFeedback: ''
-        };
-
-        // 유틸리티 함수
         function getRandomQuestions(count) {
             const shuffled = [...questionPool].sort(() => Math.random() - 0.5);
             return shuffled.slice(0, count);
         }
 
-        // 문제 개수에 따른 미니게임 삽입 위치 결정 (0부터 시작하는 인덱스)
-        function getMiniGamePositions(count) {
-            if (count === 5) return [1, 3]; // 2번째, 4번째 질문 후
-            if (count === 7) return [1, 3, 5]; // 2번째, 4번째, 6번째 질문 후
-            if (count === 10) return [2, 5, 8]; // 3번째, 6번째, 9번째 질문 후
+        function getMiniGamePositions(totalQuestions) {
+            if (totalQuestions === 5) return [2];
+            if (totalQuestions === 7) return [3, 5];
+            if (totalQuestions === 10) return [3, 6, 8];
             return [];
         }
 
-        // 결과 분석 (단순 예시)
-        function getComprehensiveResult() {
-            // 1. 판단 속도 (질문 응답 시간) - 30점 만점
-            const totalAnswerTime = state.answerTimes.reduce((a, b) => a + b, 0);
-            const avgTime = totalAnswerTime / state.answerTimes.length;
-            let speedScore = 0;
-            // 3000ms 이하: 30점, 5000ms 이하: 20점, 7000ms 이하: 10점, 그 이상: 5점
-            if (avgTime < 3000) speedScore = 30;
-            else if (avgTime < 5000) speedScore = 20;
-            else if (avgTime < 7000) speedScore = 10;
-            else speedScore = 5;
+        // Welcome Screen Component
+        function WelcomeScreen({ onStart }) {
+            const questionOptions = [
+                { count: 5, time: "2분", description: "빠르게 당신을 알아보세요" },
+                { count: 7, time: "3분", description: "적당한 깊이의 분석" },
+                { count: 10, time: "5분", description: "상세한 성향 분석" }
+            ];
 
-            // 2. 미니게임 실력 - 50점 만점 (각 게임당 16점, 17점, 17점)
-            let gameScore = 0;
-            let reactionMs = 0;
-            let timingDiff = 0;
-            let rhythmPts = 0;
-
-            const reactionScoreData = state.miniGameScores.find(s => s.type === 'reaction');
-            const timingScoreData = state.miniGameScores.find(s => s.type === 'timing');
-            const rhythmScoreData = state.miniGameScores.find(s => s.type === 'rhythm');
-            
-            if (reactionScoreData) {
-                reactionMs = reactionScoreData.score;
-                // 반응속도 점수 (16점 만점)
-                if (reactionMs < 300) gameScore += 16;
-                else if (reactionMs < 400) gameScore += 12;
-                else if (reactionMs < 500) gameScore += 8;
-                else gameScore += 4;
-            }
-
-            if (timingScoreData) {
-                timingDiff = timingScoreData.score;
-                // 타이밍 점수 (17점 만점)
-                if (timingDiff < 5) gameScore += 17;
-                else if (timingDiff < 10) gameScore += 13;
-                else if (timingDiff < 20) gameScore += 8;
-                else gameScore += 4;
-            }
-            
-            if (rhythmScoreData) {
-                rhythmPts = rhythmScoreData.score;
-                // 리듬 점수 (17점 만점, 최대 100점당 17점)
-                gameScore += Math.min(17, Math.floor(rhythmPts / 6)); 
-            }
-
-            // 3. 답변 일관성/성향 - 20점 만점
-            // (예시: A/B를 많이 선택하면 적극/계획적, C/D를 많이 선택하면 소극/순응적으로 간주)
-            let aCount = 0;
-            let bCount = 0;
-            let cCount = 0;
-            let dCount = 0;
-            state.answers.forEach(a => {
-                const q = questionPool.find(p => p.question === a.question);
-                const index = q.options.indexOf(a.answer);
-                if (index === 0) aCount++;
-                else if (index === 1) bCount++;
-                else if (index === 2) cCount++;
-                else if (index === 3) dCount++;
-            });
-
-            // A/B가 많으면 일관성이 높다고 가정 (20점 만점)
-            let consistencyScore = Math.floor(((aCount + bCount) / state.answers.length) * 20); 
-            
-            const totalScore = speedScore + gameScore + consistencyScore;
-
-            // 결과 유형 분류 (매우 단순화된 로직)
-            let resultType, resultDescription, resultDetail, resultEmoji;
-
-            if (totalScore >= 80) {
-                resultType = "번개같이 빠른 결정가 👑";
-                resultEmoji = "⚡";
-                resultDescription = "신속한 판단력과 뛰어난 실행력을 겸비한 리더 유형입니다.";
-                resultDetail = `당신은 상황 판단이 매우 빠르고, 행동에 망설임이 없습니다. (${Math.floor(avgTime)}ms) 미니게임에서도 뛰어난 감각을 보여주어 위기 상황 대처 능력이 탁월합니다. 다만, 때로는 빠른 결정이 성급함으로 이어지지 않도록 주변 의견을 수렴하는 노력도 필요합니다.`;
-            } else if (totalScore >= 60) {
-                resultType = "신중한 완벽주의자 💡";
-                resultEmoji = "🧐";
-                resultDescription = "계획적이고 침착하며, 높은 완성도를 추구하는 타입입니다.";
-                resultDetail = `질문에 대해 충분히 고려하여 합리적인 선택을 하는 경향이 있습니다. 미니게임 실력도 준수하며, 특히 일관성 있는 행동 양식으로 신뢰를 얻습니다. 행동 전에 깊이 생각하기 때문에 평균 답변 시간이 조금 걸릴 수 있지만, 그만큼 실수가 적습니다.`;
-            } else if (totalScore >= 40) {
-                resultType = "상황에 유연한 조율가 ⚖️";
-                resultEmoji = "🤝";
-                resultDescription = "갈등을 회피하고 주변에 맞추는 친화적인 성향이 강합니다.";
-                resultDetail = `당신은 타인의 의견을 잘 수용하며, 대인관계에서 큰 마찰을 만들지 않는 유연함을 보입니다. 판단 속도는 평균적이며, 미니게임에서는 집중력에 따라 기복을 보였습니다. 자신의 의견을 명확히 표현하는 연습을 한다면 더욱 발전할 수 있습니다.`;
-            } else {
-                resultType = "느긋한 자유영혼 🎈";
-                resultEmoji = "🐌";
-                resultDescription = "결과에 얽매이지 않고 느긋하게 삶을 즐기는 타입입니다.";
-                resultDetail = `주어진 문제에 크게 스트레스 받지 않으며, 답변 시간이 비교적 긴 편입니다. 이는 모든 옵션을 여유롭게 고려하거나, 혹은 깊게 생각하지 않음을 의미할 수 있습니다. 급박한 상황보다는 자유로운 환경에서 최고의 능력을 발휘합니다.`;
-            }
-
-
-            return { totalScore, speedScore, gameScore, consistencyScore, reactionMs, timingDiff, rhythmPts, resultType, resultDescription, resultDetail, resultEmoji };
-        }
-
-        // 렌더링 함수들
-        function render() {
-            const app = document.getElementById('app');
-            
-            if (state.stage === 'welcome') {
-                app.innerHTML = renderWelcome();
-            } else if (state.stage === 'questions') {
-                app.innerHTML = renderQuestion();
-                state.questionStartTime = Date.now(); // 질문 시작 시간 기록
-            } else if (state.stage === 'minigame') {
-                if (state.currentMiniGame === 'reaction') {
-                    app.innerHTML = renderReactionGame();
-                    startReactionGame();
-                } else if (state.currentMiniGame === 'timing') {
-                    app.innerHTML = renderTimingGame();
-                    startTimingGame();
-                } else if (state.currentMiniGame === 'rhythm') {
-                    app.innerHTML = renderRhythmGame();
-                    startRhythmGame();
-                }
-            } else if (state.stage === 'result') {
-                app.innerHTML = renderResult();
-            }
-        }
-
-        function renderWelcome() {
-            return `
-                <div class="icon-circle">❓</div>
-                <h1>당신의 이야기를 들려주세요</h1>
-                <p class="subtitle">
-                    몇 가지 질문에 답하시면 맞춤형 결과를 제공해드립니다.<br>
-                    솔직하게 답변해주세요! (질문 중간에 미니게임이 포함됩니다)
-                </p>
-                <p style="text-align: center; font-size: 1.125rem; font-weight: 600; margin-bottom: 1.5rem;">문제 개수를 선택하세요</p>
-                <div class="btn-group">
-                    <button class="btn" onclick="handleStart(5)">
-                        <span class="btn-number">5문제</span>
-                        <span class="btn-text">빠르게</span>
-                        <span class="btn-time">미니게임 2회 포함</span>
-                    </button>
-                    <button class="btn" onclick="handleStart(7)">
-                        <span class="btn-number">7문제</span>
-                        <span class="btn-text">적당하게</span>
-                        <span class="btn-time">미니게임 3회 포함</span>
-                    </button>
-                    <button class="btn" onclick="handleStart(10)">
-                        <span class="btn-number">10문제</span>
-                        <span class="btn-text">깊이있게</span>
-                        <span class="btn-time">미니게임 3회 포함</span>
-                    </button>
-                </div>
-            `;
-        }
-
-        function renderQuestion() {
-            const q = state.selectedQuestions[state.currentQuestion];
-            // 질문이 모두 완료되었다면 결과 페이지로 이동 (방어 코드)
-            if (!q) {
-                state.stage = 'result';
-                return '';
-            }
-            const progress = ((state.currentQuestion + 1) / state.selectedQuestions.length) * 100;
-            
-            return `
-                <div class="progress-text">
-                    <span>질문 ${state.currentQuestion + 1}</span>
-                    <span>${state.selectedQuestions.length}개 중</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: ${progress}%"></div>
-                </div>
-                <div class="card">
-                    <h2 class="question-title">${q.question}</h2>
-                    <div class="options">
-                        ${q.options.map((opt, idx) => `
-                            <button class="option-btn" onclick="handleAnswer('${opt.replace(/'/g, "\\'")}')">
-                                <span class="option-letter">${String.fromCharCode(65 + idx)}</span>
-                                <span>${opt}</span>
-                            </button>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderReactionGame() {
-            let className = 'game-waiting';
-            let text = '클릭해서 시작하세요!';
-            
-            if (state.reactionStage === 'ready') {
-                className = 'game-ready';
-                text = '준비... (잠시 기다리세요)';
-            } else if (state.reactionStage === 'go') {
-                className = 'game-go';
-                text = '지금 클릭!';
-            } else if (state.reactionStage === 'tooEarly') {
-                className = 'game-early';
-                text = '너무 빨랐어요! 😅';
-            } else if (state.reactionStage === 'result') {
-                className = 'game-result';
-                text = `
-                    <div style="text-align: center;">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">⚡</div>
-                        <div style="font-size: 2rem;">${state.reactionTime}ms</div>
-                        <div style="font-size: 1.25rem; margin-top: 0.5rem; color: #64748b;">
-                            ${state.reactionTime === 0 ? '실패 (너무 빨랐음)' : state.reactionTime < 300 ? '엄청 빠르네요! 🏆' : state.reactionTime < 500 ? '좋아요! 👍' : '괜찮아요! 😊'}
-                        </div>
-                    </div>
-                `;
-            }
-            
-            return `
-                <div class="card">
-                    <h2 style="text-align: center; font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem;">반응속도 게임</h2>
-                    <p style="text-align: center; font-size: 0.875rem; color: #64748b; margin-bottom: 2rem;">
-                        화면이 초록색이 되면 최대한 빨리 클릭하세요!
-                    </p>
-                    <div id="reaction-game-area" class="game-area ${className}">
-                        ${text}
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderTimingGame() {
-            let resultText = '';
-            if (state.timingResult !== null) {
-                const absDiff = Math.abs(state.timingResult);
-                resultText = `
-                    <div style="text-align: center;">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
-                        <div style="font-size: 2rem;">오차: ${absDiff}px</div>
-                        <div style="font-size: 1.25rem; margin-top: 0.5rem; color: #64748b;">
-                            ${absDiff < 5 ? 'PERFECT! 💯' : absDiff < 15 ? 'GREAT! 👏' : 'GOOD! 😊'}
-                        </div>
-                    </div>
-                `;
-            }
-
-            return `
-                <div class="card">
-                    <h2 style="text-align: center; font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem;">타이밍 게임</h2>
-                    <p style="text-align: center; font-size: 0.875rem; color: #64748b; margin-bottom: 2rem;">
-                        막대가 중앙에 올 때 스페이스바를 누르거나 버튼을 클릭하세요!
-                    </p>
-                    <div class="game-timing game-area" id="timing-game" style="font-size: 1.5rem;">
-                        <div class="target-zone"></div>
-                        <div class="target-line"></div>
-                        <div class="timing-bar" id="timing-bar" style="transform: translateX(${state.timingPosition}%)"></div>
-                        ${state.timingResult !== null ? resultText : '<span style="color:#0c4a6e;">집중!</span>'}
-                    </div>
-                    ${state.timingResult === null ? `
-                        <div style="text-align: center; margin-top: 1.5rem;">
-                            <button class="btn action-btn-primary" onclick="handleTimingStop()">멈추기 (스페이스바)</button>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        }
-
-        function renderRhythmGame() {
-            const progress = (state.rhythmGameTime / 10000) * 100;
-            const remainingTime = Math.max(0, Math.ceil((10000 - state.rhythmGameTime) / 1000));
-            
-            const noteElements = state.rhythmNotes.map(note => {
-                const topPercentage = (note.time - state.rhythmGameTime) / 1000 * 90 + 5; // 1초 전 노트는 상단에 위치
-                const noteClass = note.hitStatus === 'hit' ? 'hit' : '';
-                return `<div class="rhythm-note ${noteClass}" style="top: ${topPercentage}%;" data-note-id="${note.id}"></div>`;
-            }).join('');
-            
-            return `
-                <div class="card">
-                    <div class="game-info">
-                        <div>
-                            <h2 style="font-size: 1.5rem; font-weight: bold;">리듬 게임</h2>
-                            <p style="font-size: 0.875rem; color: #64748b;">
-                                노트가 라인에 닿을 때 스페이스바를 누르세요! (총 10초)
-                            </p>
-                        </div>
-                        <div style="text-align: right;">
-                            <div class="game-score">${state.rhythmScore}</div>
-                            <div style="font-size: 0.875rem; color: #64748b;">점수</div>
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
-                        <div style="flex: 1; height: 0.5rem; background: #e2e8f0; border-radius: 1rem; overflow: hidden;">
-                            <div style="height: 100%; background: linear-gradient(90deg, #0891b2 0%, #67e8f9 100%); width: ${progress}%; transition: width 0.05s linear;"></div>
-                        </div>
-                        <div class="game-timer">${remainingTime}초</div>
-                    </div>
-                    ${state.rhythmCombo > 1 ? `<div class="game-combo">${state.rhythmCombo} Combo!</div>` : ''}
-                    <div class="game-rhythm game-area" id="rhythm-game">
-                        <div class="rhythm-target-zone"></div>
-                        <div class="rhythm-target-line"></div>
-                        ${noteElements}
-                        ${state.rhythmFeedback ? `<div class="feedback-overlay"><div class="feedback-text feedback-${state.rhythmFeedback.toLowerCase()}">${state.rhythmFeedback}</div></div>` : ''}
-                    </div>
-                    <p class="game-instruction">키보드의 **스페이스바**를 사용하세요</p>
-                </div>
-            `;
-        }
-
-        function renderResult() {
-            const result = getComprehensiveResult();
-            const minigameNames = { reaction: '반응 속도', timing: '타이밍 정확도', rhythm: '리듬 감각' };
-            
-            return `
-                <div class="icon-circle" style="background: linear-gradient(135deg, #0891b2 0%, #67e8f9 100%);">✨</div>
-                <h1>분석 결과가 나왔습니다!</h1>
-                <p class="subtitle">당신의 답변과 미니게임을 종합적으로 분석했습니다.</p>
-                
-                <div class="card">
-                    <div class="result-type">
-                        <div class="result-emoji">${result.resultEmoji}</div>
-                        <div class="result-badge">당신의 유형</div>
-                        <h2 class="result-title">${result.resultType}</h2>
-                        <p class="result-description">${result.resultDescription}</p>
-                        <div class="result-score-box">
-                            <div class="result-score-label">종합 점수</div>
-                            <div class="result-score-value">${result.totalScore}</div>
-                            <div class="result-score-max">/ 100점</div>
-                        </div>
-                    </div>
-                    
-                    <div class="result-detail-box">
-                        <h3 class="result-detail-title">
-                            <span style="width: 0.25rem; height: 1rem; background: #0891b2; border-radius: 9999px;"></span>
-                            세부 분석
-                        </h3>
-                        <p class="result-detail-text">${result.resultDetail}</p>
-                    </div>
-                    
-                    <div class="score-breakdown">
-                        <h3 class="section-title">세부 점수 분석</h3>
-                        <div class="score-item">
-                            <div class="score-item-label">
-                                <span style="font-size: 1.5rem;">⚡</span>
-                                <span>판단 속도 (평균 응답 시간: ${Math.floor(result.reactionMs || 0)}ms)</span>
-                            </div>
-                            <div class="score-item-value">${result.speedScore}/30</div>
-                        </div>
-                        <div class="score-item">
-                            <div class="score-item-label">
-                                <span style="font-size: 1.5rem;">🎯</span>
-                                <span>답변 일관성/성향</span>
-                            </div>
-                            <div class="score-item-value">${result.consistencyScore}/20</div>
-                        </div>
-                        <div class="score-item">
-                            <div class="score-item-label">
-                                <span style="font-size: 1.5rem;">🎮</span>
-                                <span>미니게임 실력</span>
-                            </div>
-                            <div class="score-item-value">${result.gameScore}/50</div>
-                        </div>
+            return (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="min-h-screen flex items-center justify-center p-4"
+                    style={{ background: 'var(--gradient-primary)' }}
+                >
+                    <div className="max-w-2xl w-full text-center text-white">
+                        <motion.h1
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="text-5xl font-bold mb-6"
+                        >
+                            질문 테스트
+                        </motion.h1>
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.4 }}
+                            className="text-xl mb-12 text-white/90"
+                        >
+                            당신의 이야기를 들려주세요
+                        </motion.p>
                         
-                        <h3 class="section-title" style="margin-top: 1.5rem;">미니게임별 기록</h3>
-                        <div class="minigame-scores">
-                            ${state.miniGameScores.map(s => `
-                                <div class="minigame-score-item">
-                                    <div class="minigame-score-value">${s.type === 'reaction' ? s.score + 'ms' : s.type === 'timing' ? Math.abs(s.score) + 'px' : s.score + '점'}</div>
-                                    <div class="minigame-score-label">${minigameNames[s.type]}</div>
-                                </div>
-                            `).join('')}
+                        <div className="space-y-4">
+                            {questionOptions.map((option, index) => (
+                                <motion.button
+                                    key={option.count}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.6 + index * 0.1 }}
+                                    onClick={() => onStart(option.count)}
+                                    className="w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 hover:bg-white/20 transition-all text-left"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <div className="text-2xl font-bold mb-1">{option.count}개 질문</div>
+                                            <div className="text-white/70 text-sm">{option.description}</div>
+                                        </div>
+                                        <div className="text-white/60 text-sm">{option.time}</div>
+                                    </div>
+                                </motion.button>
+                            ))}
                         </div>
                     </div>
-                    
-                    <div class="action-buttons">
-                        <button class="action-btn action-btn-primary" onclick="window.location.reload()">다시 테스트하기</button>
+                </motion.div>
+            );
+        }
+
+        // Question Card Component
+        function QuestionCard({ question, options, onAnswer, currentQuestion, totalQuestions }) {
+            const progress = ((currentQuestion + 1) / totalQuestions) * 100;
+
+            return (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                    className="w-full max-w-2xl mx-auto"
+                >
+                    <div className="mb-8">
+                        <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                            <span>질문 {currentQuestion + 1}</span>
+                            <span>{totalQuestions}개 중</span>
+                        </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progress}%` }}
+                                transition={{ duration: 0.5 }}
+                                className="h-full"
+                                style={{ background: 'var(--gradient-primary)' }}
+                            />
+                        </div>
                     </div>
-                </div>
-            `;
+
+                    <div className="p-8 rounded-xl bg-card border border-border/50 backdrop-blur-sm" style={{ boxShadow: 'var(--shadow-card)' }}>
+                        <h2 className="text-3xl font-bold mb-8 text-foreground">{question}</h2>
+                        <div className="space-y-3">
+                            {options.map((option, index) => (
+                                <motion.button
+                                    key={index}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    onClick={() => onAnswer(option)}
+                                    className="w-full text-left h-auto py-4 px-6 text-lg border border-border rounded-lg hover:bg-accent/10 hover:border-accent transition-all"
+                                >
+                                    <span className="flex items-center gap-3">
+                                        <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold">
+                                            {String.fromCharCode(65 + index)}
+                                        </span>
+                                        <span>{option}</span>
+                                    </span>
+                                </motion.button>
+                            ))}
+                        </div>
+                    </div>
+                </motion.div>
+            );
         }
 
+        // Reaction Game Component
+        function ReactionGame({ onComplete }) {
+            const [stage, setStage] = useState("waiting");
+            const [startTime, setStartTime] = useState(0);
+            const [reactionTime, setReactionTime] = useState(0);
+            const timeoutRef = useRef();
 
-        // 이벤트 핸들러
-        function handleStart(count) {
-            state.questionCount = count;
-            state.selectedQuestions = getRandomQuestions(count);
-            state.currentQuestion = 0;
-            state.answers = [];
-            state.answerTimes = [];
-            state.miniGameScores = [];
-            state.stage = 'questions';
-            render();
+            useEffect(() => {
+                if (stage === "waiting") {
+                    const delay = 2000 + Math.random() * 3000;
+                    timeoutRef.current = setTimeout(() => {
+                        setStage("ready");
+                        setTimeout(() => {
+                            setStage("go");
+                            setStartTime(Date.now());
+                        }, 1000);
+                    }, 1000);
+                }
+
+                return () => {
+                    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+                };
+            }, [stage]);
+
+            const handleClick = () => {
+                if (stage === "waiting" || stage === "ready") {
+                    setStage("tooEarly");
+                    setTimeout(() => onComplete(0), 2000);
+                } else if (stage === "go") {
+                    const time = Date.now() - startTime;
+                    setReactionTime(time);
+                    setStage("result");
+                    const score = Math.max(0, 1000 - time);
+                    setTimeout(() => onComplete(Math.round(score)), 2000);
+                }
+            };
+
+            return (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="w-full max-w-2xl mx-auto"
+                >
+                    <div className="p-8 rounded-xl bg-card border border-border">
+                        <h2 className="text-2xl font-bold text-center mb-4">반응속도 게임</h2>
+                        <p className="text-sm text-muted-foreground text-center mb-8">
+                            초록색이 보이면 최대한 빨리 클릭하세요!
+                        </p>
+
+                        <div
+                            className={`h-96 rounded-lg flex items-center justify-center text-4xl font-bold cursor-pointer transition-colors duration-200 ${
+                                stage === "waiting" ? "bg-muted/30 text-muted-foreground" :
+                                stage === "ready" ? "bg-yellow-500/20 text-yellow-600" :
+                                stage === "go" ? "bg-green-500 text-white" :
+                                stage === "tooEarly" ? "bg-red-500/20 text-red-600" :
+                                "bg-muted/30 text-primary"
+                            }`}
+                            onClick={handleClick}
+                        >
+                            {stage === "waiting" && "대기 중..."}
+                            {stage === "ready" && "준비..."}
+                            {stage === "go" && "지금 클릭!"}
+                            {stage === "tooEarly" && "너무 빨라요! 😅"}
+                            {stage === "result" && (
+                                <div className="text-center">
+                                    <div className="text-5xl mb-4">⚡</div>
+                                    <div className="text-3xl">{reactionTime}ms</div>
+                                    <div className="text-lg mt-2 text-muted-foreground">
+                                        {reactionTime < 300 ? "엄청 빠르네요!" :
+                                         reactionTime < 500 ? "좋아요!" :
+                                         "괜찮아요!"}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </motion.div>
+            );
         }
 
-        function checkGameCompletion() {
-            const minigamePositions = getMiniGamePositions(state.questionCount);
-            
-            if (minigamePositions.includes(state.currentQuestion) && state.miniGameScores.length < minigamePositions.length) {
-                // 미니 게임이 필요한 위치일 때
-                state.stage = 'minigame';
-                const games = ['reaction', 'timing', 'rhythm'];
-                state.currentMiniGame = games[state.miniGameScores.length];
+        // Timing Game Component
+        function TimingGame({ onComplete }) {
+            const [position, setPosition] = useState(0);
+            const [direction, setDirection] = useState(1);
+            const [stopped, setStopped] = useState(false);
+            const [score, setScore] = useState(0);
 
-                // 미니게임 상태 초기화
-                state.reactionStage = 'waiting';
-                state.timingStopped = false;
-                state.timingResult = null;
-                state.timingPosition = 0;
-                state.timingDirection = 1;
-                state.rhythmScore = 0;
-                state.rhythmCombo = 0;
-                state.rhythmNotes = [];
-                state.rhythmGameTime = 0;
-                
-            } else if (state.currentQuestion >= state.selectedQuestions.length) {
-                state.stage = 'result';
-            } else {
-                state.stage = 'questions'; // 다음 질문
-            }
-            render();
+            useEffect(() => {
+                if (stopped) return;
+                const interval = setInterval(() => {
+                    setPosition(prev => {
+                        const next = prev + direction * 2;
+                        if (next >= 100 || next <= 0) {
+                            setDirection(d => -d);
+                            return prev - direction * 2;
+                        }
+                        return next;
+                    });
+                }, 20);
+                return () => clearInterval(interval);
+            }, [direction, stopped]);
+
+            const handleStop = () => {
+                if (stopped) return;
+                setStopped(true);
+                const accuracy = Math.abs(50 - position);
+                const gameScore = Math.max(0, 1000 - accuracy * 20);
+                setScore(Math.round(gameScore));
+                setTimeout(() => onComplete(Math.round(gameScore)), 2000);
+            };
+
+            return (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="w-full max-w-2xl mx-auto"
+                >
+                    <div className="p-8 rounded-xl bg-card border border-border">
+                        <h2 className="text-2xl font-bold text-center mb-4">타이밍 게임</h2>
+                        <p className="text-sm text-muted-foreground text-center mb-8">
+                            막대가 중앙에 왔을 때 멈춰보세요!
+                        </p>
+
+                        <div className="mb-8">
+                            <div className="h-20 bg-muted/30 rounded-lg relative overflow-hidden">
+                                <div className="absolute inset-y-0 left-1/2 w-1 bg-primary/30 -translate-x-1/2" />
+                                <div
+                                    className="absolute inset-y-0 w-2 bg-primary rounded transition-all"
+                                    style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
+                                />
+                            </div>
+                        </div>
+
+                        {stopped ? (
+                            <div className="text-center">
+                                <div className="text-5xl mb-4">🎯</div>
+                                <div className="text-3xl font-bold text-primary mb-2">{score}점</div>
+                                <div className="text-muted-foreground">
+                                    {score > 800 ? "완벽해요!" : score > 500 ? "좋아요!" : "괜찮아요!"}
+                                </div>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={handleStop}
+                                className="w-full py-4 px-6 bg-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90 transition"
+                            >
+                                멈추기 (스페이스바)
+                            </button>
+                        )}
+                    </div>
+                </motion.div>
+            );
         }
 
-        function handleAnswer(answer) {
-            state.answers.push({ question: state.selectedQuestions[state.currentQuestion].question, answer: answer });
-            state.answerTimes.push(Date.now() - state.questionStartTime);
+        // Rhythm Game Component  
+        function RhythmGame({ onComplete }) {
+            const [notes, setNotes] = useState([]);
+            const [score, setScore] = useState(0);
+            const [combo, setCombo] = useState(0);
+            const [gameTime, setGameTime] = useState(10);
+            const [feedback, setFeedback] = useState("");
+            const noteIdRef = useRef(0);
+            const gameStartTime = useRef(Date.now());
 
-            state.currentQuestion++;
-            
-            // 다음 단계 결정 로직
-            checkGameCompletion();
-        }
+            useEffect(() => {
+                const noteInterval = setInterval(() => {
+                    if (gameTime > 0) {
+                        setNotes(prev => [...prev, {
+                            id: noteIdRef.current++,
+                            position: 0,
+                            hit: false
+                        }]);
+                    }
+                }, 800);
 
-        // =========================================================================
-        // ⚡ 반응속도 게임 로직 (수정된 부분)
-        // =========================================================================
-
-        // Reaction Game Logic (Start is implicitly called by render)
-        function startReactionGame() {
-            // 이벤트 리스너 중복 등록 방지
-            const gameArea = document.getElementById('reaction-game-area');
-            if (gameArea && !gameArea.dataset.listenerAttached) {
-                gameArea.addEventListener('click', handleReactionClick);
-                gameArea.dataset.listenerAttached = 'true';
-            }
-        }
-
-        function handleReactionClick() {
-            if (reactionTimeout) {
-                clearTimeout(reactionTimeout);
-                reactionTimeout = null;
-            }
-
-            if (state.reactionStage === 'waiting') {
-                // 1. 'waiting' (클릭해서 시작) 상태: 클릭하면 'ready'로 전환
-                state.reactionStage = 'ready';
-                render(); 
-
-                // 2. 'ready' 상태에서 'GO' 상태로 넘어갈 시간 설정 (1초 ~ 4초)
-                const delay = Math.random() * 3000 + 1000; 
-                
-                reactionTimeout = setTimeout(() => {
-                    state.reactionStage = 'go';
-                    state.reactionStartTime = Date.now(); // GO가 된 시간 기록
-                    render(); // '지금 클릭!' 화면 (초록색)으로 전환
-                }, delay);
-
-            } else if (state.reactionStage === 'ready') {
-                // 3. 'ready' (준비) 상태에서 클릭: 너무 빠름
-                state.reactionStage = 'tooEarly';
-                state.reactionTime = 0;
-                render(); // '너무 빨라요!' 화면으로 전환
-                
-                // 1초 후 다음 단계로 이동
-                setTimeout(() => {
-                    const gameArea = document.getElementById('reaction-game-area');
-                    if (gameArea) gameArea.removeEventListener('click', handleReactionClick);
-                    state.miniGameScores.push({ type: 'reaction', score: 9999 }); // 실패 시 아주 높은 점수로 기록
-                    goToNextMiniGame();
-                }, 1000); 
-
-            } else if (state.reactionStage === 'go') {
-                // 4. 'go' (클릭!) 상태에서 클릭: 성공
-                state.reactionStage = 'result';
-                state.reactionTime = Date.now() - state.reactionStartTime; // 반응 시간 계산
-                state.miniGameScores.push({ type: 'reaction', score: state.reactionTime });
-                render(); // 결과 화면 표시
-
-                // 2초 후 다음 단계로 이동
-                setTimeout(() => {
-                    const gameArea = document.getElementById('reaction-game-area');
-                    if (gameArea) gameArea.removeEventListener('click', handleReactionClick);
-                    goToNextMiniGame();
-                }, 2000); 
-            }
-        }
-        
-        // =========================================================================
-        // 🎯 타이밍 게임 로직
-        // =========================================================================
-
-        // 타이밍 바 업데이트 루프
-        function updateTimingBar() {
-            if (state.timingStopped || state.timingResult !== null) return;
-            
-            const speed = 1.5; // 속도 조절
-            state.timingPosition += state.timingDirection * speed; 
-            
-            if (state.timingPosition >= 100) {
-                state.timingDirection = -1;
-            } else if (state.timingPosition <= 0) {
-                state.timingDirection = 1;
-            }
-            
-            const bar = document.getElementById('timing-bar');
-            if (bar) {
-                bar.style.transform = `translateX(${state.timingPosition}%)`;
-            }
-            timingAnimationId = requestAnimationFrame(updateTimingBar);
-        }
-
-        // 게임 시작/재개
-        function startTimingGame() {
-            // 키보드 이벤트 리스너 추가
-            document.addEventListener('keydown', handleKeydownTiming, { once: true });
-            
-            if (state.timingResult === null && !state.timingStopped) {
-                // 렌더링 후 애니메이션 시작
-                setTimeout(() => {
-                    cancelAnimationFrame(timingAnimationId);
-                    timingAnimationId = requestAnimationFrame(updateTimingBar);
+                const timeInterval = setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - gameStartTime.current) / 1000);
+                    const remaining = Math.max(0, 10 - elapsed);
+                    setGameTime(remaining);
+                    if (remaining === 0) {
+                        setTimeout(() => onComplete(score), 1000);
+                    }
                 }, 100);
-            } else if (state.timingResult !== null) {
-                 // 결과 화면이면 다음 단계로 자동 이동 (버튼 누를 때까지 기다리는 대신)
-                 setTimeout(goToNextMiniGame, 2000);
-            }
-        }
-        
-        // 스페이스바 입력 처리
-        function handleKeydownTiming(event) {
-            if (event.code === 'Space' && state.stage === 'minigame' && state.currentMiniGame === 'timing' && state.timingResult === null) {
-                event.preventDefault(); // 스크롤 방지
-                handleTimingStop();
-            } else {
-                // 다른 키가 눌리면 다시 리스너 등록
-                document.addEventListener('keydown', handleKeydownTiming, { once: true });
-            }
-        }
 
-        // 타이밍 멈춤
-        function handleTimingStop() {
-            if (state.timingStopped || state.timingResult !== null) return;
-            
-            cancelAnimationFrame(timingAnimationId);
-            state.timingStopped = true;
+                return () => {
+                    clearInterval(noteInterval);
+                    clearInterval(timeInterval);
+                };
+            }, [score, gameTime]);
 
-            // 중앙은 50%, 막대 너비 1rem=5px (24rem = 384px. 50%는 192px)
-            // 막대는 0% ~ 100% 이동. 중앙 50% 기준 오차 계산 (이해하기 쉽게 픽셀로 변환하지 않고 0~100 사이의 값으로 사용)
-            const targetPosition = 50;
-            const diff = state.timingPosition - targetPosition;
+            useEffect(() => {
+                const moveInterval = setInterval(() => {
+                    setNotes(prev => prev
+                        .map(note => ({ ...note, position: note.position + 2 }))
+                        .filter(note => note.position < 105)
+                    );
+                }, 20);
+                return () => clearInterval(moveInterval);
+            }, []);
 
-            state.timingResult = diff; // 중앙 50에서 얼마나 벗어났는지 (음수=왼쪽, 양수=오른쪽)
-            state.miniGameScores.push({ type: 'timing', score: diff });
-
-            // 다음 단계로 이동
-            setTimeout(goToNextMiniGame, 2000); 
-
-            render();
-        }
-
-        // =========================================================================
-        // 🎶 리듬 게임 로직
-        // =========================================================================
-        let nextNoteTime = 0;
-        let noteIdCounter = 0;
-        const NOTE_HIT_LINE = 90; // 타겟 라인 위치 (퍼센트)
-        const HIT_WINDOW_MS = 150; // 노트를 맞출 수 있는 시간 범위 (ms)
-
-        function startRhythmGame() {
-            // 키보드 이벤트 리스너 추가 (이전에 등록되었을 경우를 대비해 제거 후 다시 등록)
-            document.removeEventListener('keydown', handleKeydownRhythm);
-            document.addEventListener('keydown', handleKeydownRhythm);
-
-            // 기존 인터벌 및 생성기 클리어
-            if (rhythmGameInterval) clearInterval(rhythmGameInterval);
-            if (rhythmNoteGenerator) clearInterval(rhythmNoteGenerator);
-
-            // 게임 시간 초기화
-            state.rhythmGameTime = 0;
-            nextNoteTime = 0;
-            noteIdCounter = 0;
-            state.rhythmNotes = [];
-
-            // 노트 생성기 (1초마다 노트 생성)
-            rhythmNoteGenerator = setInterval(() => {
-                if (state.rhythmGameTime < 10000) { // 10초 동안만 생성
-                    const noteTime = state.rhythmGameTime + 1000; // 1초 뒤에 라인에 도착할 노트
-                    state.rhythmNotes.push({ id: noteIdCounter++, time: noteTime, hitStatus: 'missable' });
-                    render(); // 노트를 화면에 추가하기 위해 렌더링
-                } else {
-                    clearInterval(rhythmNoteGenerator);
-                }
-            }, 1000); 
-
-            // 메인 게임 루프 (50ms 마다 업데이트)
-            const startTime = Date.now();
-            rhythmGameInterval = setInterval(() => {
-                state.rhythmGameTime = Date.now() - startTime;
-                
-                // 시간이 지난 노트 정리 및 missed 처리
-                state.rhythmNotes = state.rhythmNotes.filter(note => {
-                    const diff = note.time - state.rhythmGameTime;
-                    if (diff < -HIT_WINDOW_MS && note.hitStatus === 'missable') {
-                        // 놓친 노트
-                        state.rhythmCombo = 0;
-                        note.hitStatus = 'missed';
-                        return false; // 화면에서 제거
+            useEffect(() => {
+                const handleKeyPress = (e) => {
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                        checkHit();
                     }
-                    if (diff < -500) { // 너무 오래 지난 노트 제거
-                        return false;
-                    }
-                    return true;
-                });
+                };
+                window.addEventListener('keydown', handleKeyPress);
+                return () => window.removeEventListener('keydown', handleKeyPress);
+            }, [notes]);
 
-                render(); // 화면 업데이트
-
-                if (state.rhythmGameTime >= 10000 && state.rhythmNotes.length === 0) {
-                    clearInterval(rhythmGameInterval);
-                    document.removeEventListener('keydown', handleKeydownRhythm);
-                    state.miniGameScores.push({ type: 'rhythm', score: state.rhythmScore });
-                    setTimeout(goToNextMiniGame, 1000);
-                }
-
-            }, 50);
-        }
-
-        function handleKeydownRhythm(event) {
-            if (event.code === 'Space' && state.stage === 'minigame' && state.currentMiniGame === 'rhythm') {
-                event.preventDefault(); // 스크롤 방지
-                
-                // 현재 라인에 가장 가까운 'missable' 노트를 찾습니다.
-                const targetNoteIndex = state.rhythmNotes.findIndex(note => 
-                    note.hitStatus === 'missable' && Math.abs(note.time - state.rhythmGameTime) <= HIT_WINDOW_MS * 2
+            const checkHit = () => {
+                const targetZone = 85;
+                const hitNote = notes.find(note => 
+                    !note.hit && Math.abs(note.position - targetZone) < 15
                 );
 
-                if (targetNoteIndex !== -1) {
-                    const note = state.rhythmNotes[targetNoteIndex];
-                    const diff = Math.abs(note.time - state.rhythmGameTime);
+                if (hitNote) {
+                    const accuracy = Math.abs(hitNote.position - targetZone);
                     let points = 0;
-                    let feedback = '';
+                    let feedbackText = "";
 
-                    // 점수 계산
-                    if (diff <= HIT_WINDOW_MS * 0.3) { // 45ms 이내
-                        points = 3; 
-                        feedback = 'PERFECT';
-                    } else if (diff <= HIT_WINDOW_MS * 0.7) { // 105ms 이내
-                        points = 2; 
-                        feedback = 'GOOD';
-                    } else if (diff <= HIT_WINDOW_MS) { // 150ms 이내
-                        points = 1; 
-                        feedback = 'OK';
+                    if (accuracy < 5) {
+                        points = 100;
+                        feedbackText = "Perfect!";
+                    } else if (accuracy < 10) {
+                        points = 50;
+                        feedbackText = "Good!";
                     } else {
-                        return; // 히트 윈도우를 벗어남
+                        points = 25;
+                        feedbackText = "OK";
                     }
 
-                    // 노트 처리
-                    note.hitStatus = 'hit';
-                    state.rhythmScore += points * (state.rhythmCombo + 1); // 콤보 보너스
-                    state.rhythmCombo++;
-                    state.rhythmFeedback = feedback;
-                    
-                    // 피드백 텍스트 제거 타이머
-                    setTimeout(() => {
-                        state.rhythmFeedback = '';
-                        render();
-                    }, 500);
-
-                    // 화면에서 노트 즉시 제거
-                    setTimeout(() => {
-                        state.rhythmNotes.splice(targetNoteIndex, 1);
-                        render();
-                    }, 100); 
-
+                    setScore(prev => prev + points * (combo + 1));
+                    setCombo(prev => prev + 1);
+                    setFeedback(feedbackText);
+                    setNotes(prev => prev.map(n => n.id === hitNote.id ? { ...n, hit: true } : n));
                 } else {
-                    // 잘못된 타이밍에 클릭: 콤보 리셋
-                    state.rhythmCombo = 0;
-                    state.rhythmFeedback = 'MISS';
-                     setTimeout(() => {
-                        state.rhythmFeedback = '';
-                        render();
-                    }, 500);
+                    setCombo(0);
+                    setFeedback("Miss!");
+                }
+
+                setTimeout(() => setFeedback(""), 500);
+            };
+
+            return (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="w-full max-w-2xl mx-auto"
+                >
+                    <div className="p-8 rounded-xl bg-card border border-border">
+                        <div className="flex justify-between mb-4">
+                            <div>
+                                <div className="text-sm text-muted-foreground">Score</div>
+                                <div className="text-2xl font-bold text-primary">{score}</div>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-sm text-muted-foreground">Time</div>
+                                <div className="text-2xl font-bold">{gameTime}s</div>
+                            </div>
+                        </div>
+
+                        <div className="h-96 bg-muted/30 rounded-lg relative overflow-hidden mb-4">
+                            <div className="absolute bottom-20 left-0 right-0 h-2 bg-primary/50" />
+                            {notes.map(note => (
+                                <div
+                                    key={note.id}
+                                    className={`absolute left-1/2 w-16 h-4 rounded-full -translate-x-1/2 transition-opacity ${
+                                        note.hit ? 'bg-green-500 opacity-0' : 'bg-primary'
+                                    }`}
+                                    style={{ bottom: `${note.position}%` }}
+                                />
+                            ))}
+                            {feedback && (
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl font-bold text-primary">
+                                    {feedback}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="text-center text-sm text-muted-foreground">
+                            스페이스바를 눌러 노트를 맞춰보세요! Combo: {combo}
+                        </div>
+                    </div>
+                </motion.div>
+            );
+        }
+
+        // Result Screen Component
+        function ResultScreen({ answers, answerTimes, miniGameScores, onRestart }) {
+            const analyzeAnswerPattern = () => {
+                const firstAnswer = answers[0];
+                const allSame = answers.every(a => a === firstAnswer);
+                const avgTime = answerTimes.reduce((a, b) => a + b, 0) / answerTimes.length;
+                return { allSame, tooFast: avgTime < 1000 };
+            };
+
+            const getComprehensiveResult = () => {
+                const avgTime = answerTimes.reduce((a, b) => a + b, 0) / answerTimes.length;
+                const speedScore = Math.max(0, 5000 - avgTime) / 50;
+                const miniGameTotal = miniGameScores.reduce((a, b) => a + b, 0);
+                const miniGameAvg = miniGameTotal / miniGameScores.length;
+                
+                const answerVariety = new Set(answers).size;
+                const varietyScore = (answerVariety / answers.length) * 1000;
+                
+                const totalScore = Math.round(speedScore + miniGameAvg + varietyScore);
+                
+                let resultType = "";
+                let emoji = "";
+                let description = "";
+                let resultDetail = "";
+                
+                if (totalScore > 2000 && avgTime < 3000) {
+                    resultType = "완벽주의 달성자";
+                    emoji = "🏆";
+                    description = "빠르고 정확한 판단력의 소유자";
+                    resultDetail = "당신은 신속한 의사결정과 높은 집중력을 동시에 보여주는 완벽주의자입니다. 주어진 과제를 빠르게 파악하고 정확하게 수행하는 능력이 뛰어나며, 게임에서도 높은 성취를 보였습니다. 이러한 성향은 압박 상황에서도 냉정함을 유지하고 최선의 결과를 도출하는 강점으로 작용합니다.";
+                } else if (totalScore > 1500) {
+                    resultType = "밸런스 마스터";
+                    emoji = "⚖️";
+                    description = "속도와 신중함의 완벽한 조화";
+                    resultDetail = "당신은 빠른 판단과 신중한 사고 사이에서 이상적인 균형을 유지합니다. 필요할 때는 빠르게 결정하지만, 중요한 순간에는 충분히 고민하는 지혜를 가지고 있습니다. 다양한 선택을 고려하면서도 우유부단하지 않은 당신의 태도는 팀워크와 리더십 상황에서 빛을 발합니다.";
+                } else if (avgTime > 5000) {
+                    resultType = "신중한 사색가";
+                    emoji = "🤔";
+                    description = "깊이 있는 고민을 통한 현명한 선택";
+                    resultDetail = "당신은 모든 질문에 충분한 시간을 들여 깊이 생각하는 사색가입니다. 성급한 판단보다는 신중한 고려를 중요시하며, 각 선택의 의미를 되새기며 답합니다. 이러한 성향은 장기적 관점에서 현명한 결정을 내리는 데 큰 도움이 되며, 복잡한 문제 해결에서 탁월한 능력을 발휘합니다.";
+                } else if (answerVariety > answers.length * 0.7) {
+                    resultType = "자유로운 탐험가";
+                    emoji = "🌟";
+                    description = "다양성을 추구하는 모험가";
+                    resultDetail = "당신은 편견 없이 모든 가능성을 탐색하는 자유로운 영혼입니다. 다양한 선택지를 골고루 고려하며, 특정 패턴에 갇히지 않는 유연한 사고방식을 가지고 있습니다. 이러한 개방적 태도는 창의적 문제 해결과 새로운 아이디어 발굴에 큰 강점이 되며, 변화와 혁신을 두려워하지 않는 당신의 특성을 잘 보여줍니다.";
+                } else {
+                    resultType = "마이웨이 도전자";
+                    emoji = "💪";
+                    description = "자신만의 길을 걷는 독립적인 성향";
+                    resultDetail = "당신은 남들의 시선이나 일반적인 기준보다 자신만의 방식을 중요시합니다. 때로는 예상 밖의 선택을 하고, 자신만의 리듬으로 문제에 접근합니다. 이러한 독립적 성향은 기존의 틀을 벗어난 혁신적인 해결책을 찾아내는 원동력이 되며, 자신만의 확고한 가치관을 바탕으로 일관된 삶의 태도를 유지하게 합니다.";
                 }
                 
-                render();
+                return { resultType, emoji, description, resultDetail, totalScore, avgTime, miniGameAvg };
+            };
+
+            const pattern = analyzeAnswerPattern();
+            const result = getComprehensiveResult();
+
+            if (pattern.allSame || pattern.tooFast) {
+                return (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="min-h-screen flex items-center justify-center p-4"
+                    >
+                        <div className="max-w-2xl w-full p-8 rounded-xl bg-card border border-border text-center">
+                            <div className="text-6xl mb-4">🤨</div>
+                            <h2 className="text-3xl font-bold mb-4 text-foreground">잠깐만요!</h2>
+                            <p className="text-lg text-muted-foreground mb-8">
+                                {pattern.allSame 
+                                    ? "모든 답변이 동일합니다. 조금 더 진지하게 참여해주세요!"
+                                    : "너무 빠르게 답변하셨어요. 각 질문을 충분히 읽어보세요!"}
+                            </p>
+                            <button
+                                onClick={onRestart}
+                                className="px-8 py-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90 transition"
+                            >
+                                다시 시작하기
+                            </button>
+                        </div>
+                    </motion.div>
+                );
             }
+
+            return (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="min-h-screen flex items-center justify-center p-4"
+                >
+                    <div className="max-w-2xl w-full p-8 rounded-xl bg-card border border-border">
+                        <div className="text-center mb-8">
+                            <div className="text-6xl mb-4">{result.emoji}</div>
+                            <h2 className="text-3xl font-bold mb-2 text-foreground">{result.resultType}</h2>
+                            <p className="text-lg text-muted-foreground mb-4">{result.description}</p>
+                            <div className="text-sm text-muted-foreground leading-relaxed mb-6 text-left bg-muted/30 p-4 rounded-lg">
+                                {result.resultDetail}
+                            </div>
+                            <div className="text-4xl font-bold text-primary mb-2">{result.totalScore}점</div>
+                        </div>
+
+                        <div className="space-y-4 mb-8">
+                            <div className="p-4 bg-muted/30 rounded-lg">
+                                <div className="text-sm text-muted-foreground mb-1">평균 응답 시간</div>
+                                <div className="text-2xl font-bold text-foreground">{(result.avgTime / 1000).toFixed(1)}초</div>
+                            </div>
+                            
+                            {miniGameScores.length > 0 && (
+                                <div className="p-4 bg-muted/30 rounded-lg">
+                                    <div className="text-sm text-muted-foreground mb-2">미니게임 점수</div>
+                                    <div className="space-y-2">
+                                        {miniGameScores.map((score, index) => (
+                                            <div key={index} className="flex justify-between">
+                                                <span>게임 {index + 1}</span>
+                                                <span className="font-bold text-primary">{score}점</span>
+                                            </div>
+                                        ))}
+                                        <div className="pt-2 border-t border-border flex justify-between">
+                                            <span className="font-semibold">평균</span>
+                                            <span className="font-bold text-primary">{Math.round(result.miniGameAvg)}점</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={onRestart}
+                                className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90 transition"
+                            >
+                                다시 하기
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (navigator.share) {
+                                        navigator.share({
+                                            title: '질문 테스트 결과',
+                                            text: `나는 ${result.resultType}! ${result.totalScore}점을 받았어요!`,
+                                        });
+                                    }
+                                }}
+                                className="flex-1 px-6 py-3 bg-secondary text-secondary-foreground rounded-lg font-semibold hover:opacity-90 transition"
+                            >
+                                공유하기
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+            );
         }
 
-        // =========================================================================
-        // 메인 흐름 제어
-        // =========================================================================
+        // Main App Component
+        function App() {
+            const [stage, setStage] = useState("welcome");
+            const [currentQuestion, setCurrentQuestion] = useState(0);
+            const [answers, setAnswers] = useState([]);
+            const [answerTimes, setAnswerTimes] = useState([]);
+            const [miniGameScores, setMiniGameScores] = useState([]);
+            const [selectedQuestions, setSelectedQuestions] = useState([]);
+            const [questionCount, setQuestionCount] = useState(5);
+            const answerStartTime = useRef(Date.now());
 
-        function goToNextMiniGame() {
-            // 게임별 타이머/리스너 정리
-            if (reactionTimeout) clearTimeout(reactionTimeout);
-            if (timingAnimationId) cancelAnimationFrame(timingAnimationId);
-            document.removeEventListener('keydown', handleKeydownTiming);
-            if (rhythmGameInterval) clearInterval(rhythmGameInterval);
-            if (rhythmNoteGenerator) clearInterval(rhythmNoteGenerator);
-            document.removeEventListener('keydown', handleKeydownRhythm);
+            const handleStart = (count) => {
+                setQuestionCount(count);
+                setSelectedQuestions(getRandomQuestions(count));
+                setStage("questions");
+                answerStartTime.current = Date.now();
+            };
 
+            const handleAnswer = (answer) => {
+                const timeSpent = Date.now() - answerStartTime.current;
+                setAnswers([...answers, answer]);
+                setAnswerTimes([...answerTimes, timeSpent]);
 
-            const minigamePositions = getMiniGamePositions(state.questionCount);
-            const totalGames = minigamePositions.length;
-            const currentGamesCompleted = state.miniGameScores.length;
+                const miniGamePositions = getMiniGamePositions(questionCount);
+                const nextQuestion = currentQuestion + 1;
 
-            if (currentGamesCompleted < totalGames) {
-                // 다음 미니 게임으로 이동 (checkGameCompletion에서 처리)
-                state.stage = 'questions'; // 임시로 질문으로 돌린 후
-            } else {
-                // 모든 미니 게임 완료 후, 질문 단계로 복귀하거나 결과 화면으로 이동
-                state.stage = 'questions'; 
-            }
-            
-            // 다음 질문 또는 최종 결과로 이동
-            checkGameCompletion();
+                if (miniGamePositions.includes(nextQuestion)) {
+                    setStage("minigame");
+                } else if (nextQuestion >= questionCount) {
+                    setStage("result");
+                } else {
+                    setCurrentQuestion(nextQuestion);
+                    answerStartTime.current = Date.now();
+                }
+            };
+
+            const handleMiniGameComplete = (score) => {
+                setMiniGameScores([...miniGameScores, score]);
+                const nextQuestion = currentQuestion + 1;
+                
+                if (nextQuestion >= questionCount) {
+                    setStage("result");
+                } else {
+                    setCurrentQuestion(nextQuestion);
+                    setStage("questions");
+                    answerStartTime.current = Date.now();
+                }
+            };
+
+            const handleRestart = () => {
+                setStage("welcome");
+                setCurrentQuestion(0);
+                setAnswers([]);
+                setAnswerTimes([]);
+                setMiniGameScores([]);
+                setSelectedQuestions([]);
+            };
+
+            const miniGameTypes = ["reaction", "timing", "rhythm"];
+            const currentMiniGame = miniGameTypes[miniGameScores.length % 3];
+
+            return (
+                <div className="min-h-screen p-4 flex items-center justify-center">
+                    <AnimatePresence mode="wait">
+                        {stage === "welcome" && (
+                            <WelcomeScreen key="welcome" onStart={handleStart} />
+                        )}
+                        {stage === "questions" && (
+                            <QuestionCard
+                                key={`question-${currentQuestion}`}
+                                question={selectedQuestions[currentQuestion].question}
+                                options={selectedQuestions[currentQuestion].options}
+                                onAnswer={handleAnswer}
+                                currentQuestion={currentQuestion}
+                                totalQuestions={questionCount}
+                            />
+                        )}
+                        {stage === "minigame" && currentMiniGame === "reaction" && (
+                            <ReactionGame key="reaction" onComplete={handleMiniGameComplete} />
+                        )}
+                        {stage === "minigame" && currentMiniGame === "timing" && (
+                            <TimingGame key="timing" onComplete={handleMiniGameComplete} />
+                        )}
+                        {stage === "minigame" && currentMiniGame === "rhythm" && (
+                            <RhythmGame key="rhythm" onComplete={handleMiniGameComplete} />
+                        )}
+                        {stage === "result" && (
+                            <ResultScreen
+                                key="result"
+                                answers={answers}
+                                answerTimes={answerTimes}
+                                miniGameScores={miniGameScores}
+                                onRestart={handleRestart}
+                            />
+                        )}
+                    </AnimatePresence>
+                </div>
+            );
         }
 
-        // 초기 렌더링
-        render();
-
-        // 초기화 시 불필요하게 남아있는 리스너를 제거합니다.
-        window.onload = function() {
-             document.removeEventListener('keydown', handleKeydownTiming);
-             document.removeEventListener('keydown', handleKeydownRhythm);
-        }
-
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
