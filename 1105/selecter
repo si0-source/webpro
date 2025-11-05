@@ -1,0 +1,296 @@
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import { RefreshCw, Share2, Sparkles } from "lucide-react";
+
+interface ResultScreenProps {
+  answers: string[];
+  answerTimes: number[];
+  miniGameScores: number[];
+  onRestart: () => void;
+}
+
+export const ResultScreen = ({ answers, answerTimes, miniGameScores, onRestart }: ResultScreenProps) => {
+  // 답변 패턴 분석
+  const analyzeAnswerPattern = () => {
+    // 같은 답변을 반복적으로 선택했는지 확인
+    const answerCounts = answers.reduce((acc, answer) => {
+      acc[answer] = (acc[answer] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const maxRepeats = Math.max(...Object.values(answerCounts));
+    const hasRepeatedPattern = maxRepeats >= 5;
+    
+    // 너무 빨리 답변했는지 확인 (평균 2초 이하)
+    const averageTime = answerTimes.reduce((sum, time) => sum + time, 0) / answerTimes.length;
+    const answeredTooQuickly = averageTime < 2;
+    
+    return { hasRepeatedPattern, answeredTooQuickly, maxRepeats, averageTime };
+  };
+
+  const getComprehensiveResult = () => {
+    const { averageTime } = analyzeAnswerPattern();
+    const totalMiniGameScore = miniGameScores.reduce((sum, score) => sum + score, 0);
+    const avgMiniGameScore = totalMiniGameScore / miniGameScores.length;
+    
+    // 답변 속도 점수 (빠를수록 높음, 최대 30점)
+    const speedScore = Math.min(30, Math.max(0, 30 - averageTime * 3));
+    
+    // 미니게임 점수 (최대 50점)
+    const gameScore = Math.min(50, avgMiniGameScore / 2);
+    
+    // 답변 일관성 점수 (최대 20점) - 너무 반복적이지 않으면서도 패턴이 있는지
+    const answerCounts = answers.reduce((acc, answer) => {
+      acc[answer] = (acc[answer] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    const variance = Object.values(answerCounts).reduce((sum, count) => sum + Math.pow(count - answers.length / Object.keys(answerCounts).length, 2), 0);
+    const consistencyScore = Math.min(20, variance * 2);
+    
+    const totalScore = Math.round(speedScore + gameScore + consistencyScore);
+    
+    // 총점에 따른 유형 결정
+    let resultType = "";
+    let resultDescription = "";
+    let resultDetail = "";
+    let resultEmoji = "";
+    
+    if (totalScore >= 80) {
+      resultType = "완벽주의 달성자";
+      resultDescription = "빠른 판단력과 뛰어난 집중력을 동시에 보유한 유형입니다.";
+      resultDetail = "당신은 상황을 빠르게 파악하고 즉각적으로 최선의 선택을 내립니다. 미니게임에서도 높은 집중력을 보여주었고, 답변 패턴도 일관성이 있습니다. 이런 당신은 중요한 결정을 내려야 하는 순간에 특히 빛을 발하며, 주변 사람들이 믿고 따르는 리더형입니다. 다만 때로는 너무 완벽을 추구하다 보니 작은 실수에도 스트레스를 받을 수 있으니, 가끔은 여유를 가지는 것도 필요합니다.";
+      resultEmoji = "🏆";
+    } else if (totalScore >= 65) {
+      resultType = "밸런스 마스터";
+      resultDescription = "신중함과 빠른 판단력의 균형이 잘 잡힌 유형입니다.";
+      resultDetail = "당신은 상황에 따라 빠르게 결정하기도 하고, 필요할 때는 충분히 고민하는 유연성을 가지고 있습니다. 미니게임 점수와 답변 속도 모두 안정적이며, 극단적이지 않은 중도적 선택을 선호합니다. 이런 균형감각은 팀 프로젝트나 그룹 활동에서 조율자 역할을 하기에 적합합니다. 다만 때로는 우유부단해 보일 수 있으니, 중요한 순간에는 자신의 의견을 명확히 하는 연습이 필요합니다.";
+      resultEmoji = "⚖️";
+    } else if (totalScore >= 50) {
+      resultType = "신중한 사색가";
+      resultDescription = "충분한 고민 끝에 결정을 내리는 사려 깊은 유형입니다.";
+      resultDetail = "당신은 답변에 시간을 충분히 들이며, 각 선택지를 꼼꼼히 검토하는 스타일입니다. 급하게 판단하기보다는 모든 가능성을 생각해본 후 결정을 내립니다. 이런 신중함은 중요한 결정에서 실수를 줄여주지만, 일상적인 선택에서는 너무 많은 에너지를 소비할 수 있습니다. 때로는 직관을 믿고 빠르게 결정하는 연습도 필요합니다. 당신의 깊이 있는 사고방식은 문제 해결 능력의 핵심입니다.";
+      resultEmoji = "🤔";
+    } else if (totalScore >= 35) {
+      resultType = "자유로운 탐험가";
+      resultDescription = "결과보다는 과정을 즐기는 여유로운 유형입니다.";
+      resultDetail = "당신은 정해진 틀에 얽매이지 않고 자유롭게 선택하는 스타일입니다. 미니게임에서도 점수에 연연하기보다는 재미를 추구하며, 답변 패턴도 예측하기 어려운 독특함이 있습니다. 이런 자유로움은 창의적인 아이디어를 내는 데 도움이 되지만, 때로는 일관성 부족으로 보일 수 있습니다. 중요한 상황에서는 조금 더 집중력을 발휘한다면, 당신의 창의성이 더 빛날 것입니다.";
+      resultEmoji = "🎨";
+    } else {
+      resultType = "마이웨이 도전자";
+      resultDescription = "자신만의 독특한 방식으로 문제에 접근하는 유형입니다.";
+      resultDetail = "당신은 남들과 다른 시각으로 상황을 바라보며, 전혀 예상치 못한 선택을 하는 경우가 많습니다. 답변 시간이 불규칙하고 패턴도 일정하지 않지만, 그것이 오히려 당신만의 독창성입니다. 다만 이런 스타일은 때로 주변 사람들이 이해하기 어려울 수 있으니, 중요한 결정에서는 다른 사람들과 소통하며 생각을 공유하는 것이 좋습니다. 당신의 독특한 관점은 새로운 해결책을 찾는 데 큰 강점이 될 수 있습니다.";
+      resultEmoji = "🎯";
+    }
+    
+    return {
+      totalScore,
+      speedScore: Math.round(speedScore),
+      gameScore: Math.round(gameScore),
+      consistencyScore: Math.round(consistencyScore),
+      resultType,
+      resultDescription,
+      resultDetail,
+      resultEmoji,
+    };
+  };
+
+  const { hasRepeatedPattern, answeredTooQuickly, maxRepeats } = analyzeAnswerPattern();
+  const isSpecialResult = hasRepeatedPattern || answeredTooQuickly;
+  const comprehensiveResult = getComprehensiveResult();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="w-full max-w-3xl mx-auto px-4"
+    >
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+        className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center mx-auto mb-6 shadow-lg"
+      >
+        <Sparkles className="w-8 h-8 text-white" />
+      </motion.div>
+
+      <motion.h1
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.3 }}
+        className="text-4xl md:text-5xl font-bold text-center mb-4"
+      >
+        {isSpecialResult ? "잠깐만요! 🤔" : "결과가 나왔습니다!"}
+      </motion.h1>
+
+      <motion.p
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="text-xl text-muted-foreground text-center mb-12"
+      >
+        {isSpecialResult 
+          ? "당신의 답변 패턴이 조금 특이합니다..." 
+          : "당신의 답변을 분석했습니다"
+        }
+      </motion.p>
+
+      <motion.div
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.5 }}
+      >
+        <Card className="p-8 shadow-[var(--shadow-card)] border-border/50 backdrop-blur-sm bg-card/80 mb-6">
+          {isSpecialResult ? (
+            <div className="text-center mb-6">
+              <div className="inline-block px-4 py-2 rounded-full bg-destructive/10 text-destructive font-semibold mb-4">
+                특별 결과
+              </div>
+              <h2 className="text-3xl font-bold mb-4 text-destructive">
+                성실하지 않은 답변자 유형
+              </h2>
+              <div className="space-y-4 text-left">
+                {hasRepeatedPattern && (
+                  <div className="p-4 bg-muted rounded-lg">
+                    <p className="text-lg font-semibold mb-2">🔄 반복 패턴 감지</p>
+                    <p className="text-muted-foreground">
+                      같은 답변을 <strong className="text-destructive">{maxRepeats}번</strong> 선택하셨습니다.
+                      진지하게 답변해주세요!
+                    </p>
+                  </div>
+                )}
+                {answeredTooQuickly && (
+                  <div className="p-4 bg-muted rounded-lg">
+                    <p className="text-lg font-semibold mb-2">⚡ 너무 빠른 응답</p>
+                    <p className="text-muted-foreground">
+                      평균 답변 시간이 <strong className="text-destructive">2초 미만</strong>입니다.
+                      각 질문을 충분히 고민하고 답변해주세요.
+                    </p>
+                  </div>
+                )}
+                <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg mt-6">
+                  <p className="text-center text-muted-foreground">
+                    정확한 결과를 위해 각 질문을 신중하게 읽고<br />
+                    솔직하게 답변해주시기 바랍니다.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="mb-6">
+              <div className="text-center">
+                <div className="text-6xl mb-4">{comprehensiveResult.resultEmoji}</div>
+                <div className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary font-semibold mb-4">
+                  당신의 유형
+                </div>
+                <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  {comprehensiveResult.resultType}
+                </h2>
+                <p className="text-lg font-semibold text-foreground mb-6">
+                  {comprehensiveResult.resultDescription}
+                </p>
+                <div className="text-center p-6 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary/20 mb-6">
+                  <div className="text-sm text-muted-foreground mb-2">종합 점수</div>
+                  <div className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                    {comprehensiveResult.totalScore}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">/ 100점</div>
+                </div>
+              </div>
+              
+              <div className="mt-6 p-5 rounded-lg bg-muted/30 border border-border/50">
+                <h3 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+                  <span className="w-1 h-4 bg-primary rounded-full"></span>
+                  세부 분석
+                </h3>
+                <p className="text-sm leading-relaxed text-muted-foreground text-left">
+                  {comprehensiveResult.resultDetail}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {!isSpecialResult && (
+            <>
+              <div className="border-t border-border pt-6 mt-6">
+                <h3 className="font-semibold mb-4 text-lg">세부 점수</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">⚡</span>
+                      <span className="text-sm font-medium">판단 속도</span>
+                    </div>
+                    <div className="text-xl font-bold text-primary">{comprehensiveResult.speedScore}/30</div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">🎮</span>
+                      <span className="text-sm font-medium">미니게임 실력</span>
+                    </div>
+                    <div className="text-xl font-bold text-primary">{comprehensiveResult.gameScore}/50</div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">🎯</span>
+                      <span className="text-sm font-medium">답변 일관성</span>
+                    </div>
+                    <div className="text-xl font-bold text-primary">{comprehensiveResult.consistencyScore}/20</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-border pt-6 mt-6">
+                <h3 className="font-semibold mb-3 text-lg">미니게임 개별 점수</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center p-4 rounded-lg bg-muted/50">
+                    <div className="text-2xl font-bold text-primary">{miniGameScores[0] || 0}</div>
+                    <div className="text-xs text-muted-foreground mt-1">반응속도</div>
+                  </div>
+                  <div className="text-center p-4 rounded-lg bg-muted/50">
+                    <div className="text-2xl font-bold text-primary">{miniGameScores[1] || 0}</div>
+                    <div className="text-xs text-muted-foreground mt-1">타이밍</div>
+                  </div>
+                  <div className="text-center p-4 rounded-lg bg-muted/50">
+                    <div className="text-2xl font-bold text-primary">{miniGameScores[2] || 0}</div>
+                    <div className="text-xs text-muted-foreground mt-1">리듬</div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </Card>
+      </motion.div>
+
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.8 }}
+        className="flex flex-col sm:flex-row gap-4 justify-center"
+      >
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={onRestart}
+          className="gap-2"
+        >
+          <RefreshCw className="w-4 h-4" />
+          {isSpecialResult ? "다시 진지하게 하기" : "다시 하기"}
+        </Button>
+        {!isSpecialResult && (
+          <Button
+            size="lg"
+            className="gap-2 bg-gradient-to-r from-primary to-accent hover:opacity-90"
+            onClick={() => {
+              // 공유 기능 구현 가능
+              alert("결과 공유 기능은 추후 추가됩니다!");
+            }}
+          >
+            <Share2 className="w-4 h-4" />
+            결과 공유하기
+          </Button>
+        )}
+      </motion.div>
+    </motion.div>
+  );
+};
